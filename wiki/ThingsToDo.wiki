@@ -1,0 +1,16 @@
+#summary Just a simple list of things we need to get done in no particular order.
+#labels todolist,patrick
+
+= To DO list =
+
+*Come up with a block diagram and some pseudocode of the project*
+
+*Decide on team meeting times* - post schedules in a new wiki and we'll come up with something.
+
+*Decide what language we're going to code this in* - my vote is for java, but we can try and tackle whatever you guys are up for.
+
+*.... more to come.*
+
+**
+
+**
