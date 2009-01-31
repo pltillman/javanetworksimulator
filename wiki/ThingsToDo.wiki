@@ -3,13 +3,13 @@
 
 = To DO list =
 
-#  *Come up with a block diagram and some pseudocode of the project*
+  #  *Come up with a block diagram and some pseudocode of the project*
 
-#  *Decide on team meeting times* - post schedules in a new wiki and we'll come up with something.
+  #  *Decide on team meeting times* - post schedules in a new wiki and we'll come up with something.
 
-#  *Decide what language we're going to code this in* - my vote is for java, but we can try and tackle whatever you guys are up for.
+  #  *Decide what language we're going to code this in* - my vote is for java, but we can try and tackle whatever you guys are up for.
 
-#  *.... more to come.*
+  #  *.... more to come.*
 
 **
 
