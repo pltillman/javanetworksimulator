@@ -4,8 +4,7 @@
 
 http://www.docjar.com/docs/api/java/net/InetAddress.html
 
-
-static InetAddress[] getAllByName0(String host,
+'static InetAddress[] getAllByName0(String host,
     boolean check) throws UnknownHostException 
 
 {
@@ -34,4 +33,4 @@ static InetAddress[] getAllByName0(String host,
         return (InetAddress [])objcopy;
 }
 
-      package private so SocketPermission can call it
+      package private so SocketPermission can call it'
