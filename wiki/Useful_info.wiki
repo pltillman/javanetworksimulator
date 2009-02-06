@@ -35,3 +35,9 @@ http://www.docjar.com/docs/api/java/net/InetAddress.html
 
  
 package private so SocketPermission can call it
+
+
+
+
+
+http://www.javafaq.nu/java-example-code-163.html
