@@ -33,16 +33,14 @@ public class NewServer extends Thread {
 
         packet = new DatagramPacket(message, message.length);
         serv_socket = new DatagramSocket(DEFAULT_PORT);
+
+        address = InetAddress.getLocalHost();
+        IP = address.getAddress();
         
-        InetAddress local_addr = InetAddress.getLocalHost();
-        System.out.println(local_addr);
         for (int j=0; j<10; j++) {
             serv_socket.receive(packet);
             byte[] rcvdPacket = packet.getData();
-            String s = null;
-
-            address = InetAddress.getLocalHost();
-            IP = address.getAddress();
+            //System.out.println(extractDestHost(rcvdPacket));
 
             // Get a string representation of the local ip address
             for (int index=0; index<IP.length; index++) {
@@ -51,29 +49,36 @@ public class NewServer extends Thread {
                 }
                 local_ip += ((int)IP[index]) & 0xff;
             }
+
             rt_entry target = new rt_entry(rcvdPacket, local_ip);
+            byte[] br = rtLookup(target);
 
-            if (rcvdPacket[0] == 0) {
-                
-                byte[] br = rtLookup(target);
-                if (br != null) {
-                    updatePacket(br);
-                } else {
-                    //sendMessage() to client.. undeliverable flag = 3
-                }
 
-            } else if (rcvdPacket[0] == 1) {
-                byte[] br = rtLookup(target);
-                if (br != null) {
-                    RoutingTable.add(target);
-                } else {
-                    //reply with ack message
-                }
+            switch(rcvdPacket[0]) {
+
+                case 0:
+                    if (br != null) {
+                        updatePacket(br);
+                    } else {
+                        //sendMessage() to client.. undeliverable flag = 3
+                    }
+                    break;
+
+                case 1:                    
+                    if (br != null) {
+                        RoutingTable.add(target);
+                    } else {
+                        //reply with ack message
+                    }
+                    break;
+                    
+                default:
+                    System.out.println("unrecognized flag bit");
+                    break;
             }
             
-            String received = new String(packet.getData(), 0, packet.getLength());
-            System.out.println(received + "\t" + packet.getLength() + "\t" + packet.getOffset()
-                    + "\t" + packet.getPort());
+            String received = new String(rcvdPacket, 0, rcvdPacket.length);
+            System.out.println(extractDestHost(rcvdPacket) + "\t" + extractIP(rcvdPacket));
         }
         serv_socket.close();
 
@@ -108,26 +113,31 @@ public class NewServer extends Thread {
     }
 
 
-    protected byte[] makePacket(byte f, byte[] host, byte[] ip, String message) {
+    protected byte[] makePacket(byte f, String host, byte[] ip, String message) {
 
         constrPacket[0] = f;
         byte[] b = message.getBytes();
+        byte[] h = host.getBytes();
 
-        for (int y=1; y<5; y++) {
-            constrPacket[y] = ip[y];
+        for (int y=1,k=0; y<5; y++) {
+            constrPacket[y] = ip[k++];
         }
-        for (int j=5; j<33; j++) {
-            constrPacket[j] = host[j];
+        for (int j=5, l=0; j<h.length; j++) {
+            constrPacket[j] = h[l++];
         }
-        for (int p=33; p<256; p++) {
-            constrPacket[p] = b[p];
+        for (int p=33,w=0; p<256; p++) {
+            constrPacket[p] = b[w++];
         }
         return constrPacket;
     }
 
+
+    
     protected String extractDestHost(byte[] p) {
-        byte[] h = null;
+        byte[] h = new byte[28];
+        
         for (int j=5,k=0; j<33; j++) {
+            //System.out.println("packet " + p[j]);
             h[k++] = p[j];
         }
         String DestHost = new String(h,0,h.length);
@@ -135,12 +145,13 @@ public class NewServer extends Thread {
 
     }
 
-    protected byte[] extractIP(byte[] p) {
-        byte[] ip = null;
+    protected String extractIP(byte[] p) {
+        byte[] ip = new byte[4];
         for (int j=1,k=0; j<5; j++) {
             ip[k++] = p[j];
         }
-        return ip;
+
+        return getIPString(ip);
     }
 
     protected void updatePacket(byte[] n) {
@@ -175,7 +186,19 @@ public class NewServer extends Thread {
         return ip;
     }
 
+    private String getIPString(byte[] o) {
+        
+        for (int index=0; index<o.length; index++) {
+            if (index > 0) {
+                local_ip += ".";
+                //System.out.print(".");
+            }
+            local_ip += ((int)o[index]) & 0xff;
+            //System.out.print(((int)IP[index])& 0xff);
 
+        }
+        return local_ip;
+    }
     
     class rt_entry {
 
