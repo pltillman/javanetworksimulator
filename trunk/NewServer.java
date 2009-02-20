@@ -10,6 +10,8 @@ public class NewServer extends Thread {
     protected final int BCAST_PORT = 7872;
     protected final int expiration = 2000;
     protected final int THREE_SECONDS = 3000;
+    protected byte[] constrPacket = new byte[256];
+
 
     public static void main(String[] args) throws IOException {
 
@@ -17,8 +19,6 @@ public class NewServer extends Thread {
     }
 
 
-
-    
     public NewServer(String n) throws IOException {
 
         super(n);
@@ -69,7 +69,56 @@ public class NewServer extends Thread {
     }
 
 
+    protected byte[] makePacket(byte f, byte[] host, byte[] ip, String message) {
 
+        constrPacket[0] = f;
+        byte[] b = message.getBytes();
+
+        for (int y=1; y<5; y++) {
+            constrPacket[y] = ip[y];
+        }
+        for (int j=5; j<33; j++) {
+            constrPacket[j] = host[j];
+        }
+        for (int p=33; p<256; p++) {
+            constrPacket[p] = b[p];
+        }
+        return constrPacket;
+    }
+
+    protected String extractDestHost(byte[] p) {
+        byte[] h = null;
+        for (int j=5,k=0; j<33; j++) {
+            h[k++] = p[j];
+        }
+        String DestHost = new String(h,0,h.length);
+        return DestHost;
+
+    }
+
+    protected byte[] extractIP(byte[] p) {
+        byte[] ip = null;
+        for (int j=1,k=0; j<5; j++) {
+            ip[k++] = p[j];
+        }
+        return ip;
+    }
+
+
+    protected void populate_rt(byte[] b) {
+        
+    }
+
+    protected void rtLookup(String n) {
+
+        
+        for (int j=0;j<rt.length;j++) {
+            if (rt.contains(n)) {
+                rt[j].getIP();
+            }
+
+        }
+    }
 
 
 
