@@ -1,6 +1,6 @@
 import java.net.*;
 import java.io.*;
-
+import java.util.ArrayList;
 
 public class NewServer extends Thread {
 
@@ -11,7 +11,7 @@ public class NewServer extends Thread {
     protected final int expiration = 2000;
     protected final int THREE_SECONDS = 3000;
     protected byte[] constrPacket = new byte[256];
-
+    private static ArrayList<rt_entry> RoutingTable = new ArrayList<rt_entry>();
 
     public static void main(String[] args) throws IOException {
 
@@ -22,6 +22,7 @@ public class NewServer extends Thread {
     public NewServer(String n) throws IOException {
 
         super(n);
+
         callForClients();
 
         byte[] message = new byte[256];
@@ -106,20 +107,54 @@ public class NewServer extends Thread {
 
 
     protected void populate_rt(byte[] b) {
+        byte[] ip = null;
+        byte[] dh = null;
+        String ip_str = null;
+        String dest_host = null;
+        for (int i=1, j=0; i<5; i++) {
+            ip[j++] = b[i];
+        }
+        for (int k=5,l=0; k<33; k++) {
+            dh[l++] = b[k];
+        }
         
+        //ip_str = new String(ip,0,ip.length);
+        dest_host = new String(dh,0,dh.length);
+        RoutingTable.add(new rt_entry(ip, dest_host));
     }
 
-    protected void rtLookup(String n) {
-
+    protected void rtLookup(rt_entry n) {
+        byte[] ip = null;
         
-        for (int j=0;j<rt.length;j++) {
-            if (rt.contains(n)) {
-                rt[j].getIP();
+        for (int j=0;j<RoutingTable.size();j++) {
+            if (RoutingTable.contains(n)) {
+                ip = RoutingTable.get(j).getIP();
             }
 
         }
     }
 
 
+    
+    class rt_entry {
+
+        protected byte[] ip;
+        protected String destHost;
+
+        public rt_entry(byte[] i, String h) {
+            this.ip = i;
+            this.destHost = h;
+        }
+
+        public byte[] getIP() {
+            return this.ip;
+        }
+        public String getHost() {
+            return this.destHost;
+        }
+        
+
+        
+    }
 
 }
