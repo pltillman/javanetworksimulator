@@ -112,7 +112,47 @@ public class NewClient {
 
     }
 
+    
+    protected byte[] makePacket(byte f, byte[] host, byte[] ip, String message) {
 
+        constrPacket[0] = f;
+        byte[] b = message.getBytes();
+
+        for (int y=1; y<5; y++) {
+            constrPacket[y] = ip[y];
+        }
+        for (int j=5; j<33; j++) {
+            constrPacket[j] = host[j];
+        }
+        for (int p=33; p<256; p++) {
+            constrPacket[p] = b[p];
+        }
+        return constrPacket;
+    }
+
+    protected String extractDestHost(byte[] p) {
+        byte[] h = null;
+        for (int j=5,k=0; j<33; j++) {
+            h[k++] = p[j];
+        }
+        String DestHost = new String(h,0,h.length);
+        return DestHost;
+
+    }
+
+    protected byte[] extractIP(byte[] p) {
+        byte[] ip = null;
+        for (int j=1,k=0; j<5; j++) {
+            ip[k++] = p[j];
+        }
+        return ip;
+    }
+
+    protected void updatePacket(byte[] n) {
+        for (int i=1,k=0; i<5; i++) {
+            constrPacket[i] = n[k++];
+        }
+    }
 
   
 
