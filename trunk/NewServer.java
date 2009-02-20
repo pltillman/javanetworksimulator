@@ -12,6 +12,10 @@ public class NewServer extends Thread {
     protected final int THREE_SECONDS = 3000;
     protected byte[] constrPacket = new byte[256];
     private static ArrayList<rt_entry> RoutingTable = new ArrayList<rt_entry>();
+    protected InetAddress address;
+    protected byte[] IP;
+    protected String local_ip;
+
 
     public static void main(String[] args) throws IOException {
 
@@ -32,11 +36,45 @@ public class NewServer extends Thread {
         
         InetAddress local_addr = InetAddress.getLocalHost();
         System.out.println(local_addr);
-        serv_socket.receive(packet);
-        String received = new String(packet.getData(), 0, packet.getLength());
-        System.out.println(received + "\t" + packet.getLength() + "\t" + packet.getOffset()
-                + "\t" + packet.getPort());
-        
+        for (int j=0; j<10; j++) {
+            serv_socket.receive(packet);
+            byte[] rcvdPacket = packet.getData();
+            String s = null;
+
+            address = InetAddress.getLocalHost();
+            IP = address.getAddress();
+
+            // Get a string representation of the local ip address
+            for (int index=0; index<IP.length; index++) {
+                if (index > 0) {
+                    local_ip += ".";
+                }
+                local_ip += ((int)IP[index]) & 0xff;
+            }
+            rt_entry target = new rt_entry(rcvdPacket, local_ip);
+
+            if (rcvdPacket[0] == 0) {
+                
+                byte[] br = rtLookup(target);
+                if (br != null) {
+                    updatePacket(br);
+                } else {
+                    //sendMessage() to client.. undeliverable flag = 3
+                }
+
+            } else if (rcvdPacket[0] == 1) {
+                byte[] br = rtLookup(target);
+                if (br != null) {
+                    RoutingTable.add(target);
+                } else {
+                    //reply with ack message
+                }
+            }
+            
+            String received = new String(packet.getData(), 0, packet.getLength());
+            System.out.println(received + "\t" + packet.getLength() + "\t" + packet.getOffset()
+                    + "\t" + packet.getPort());
+        }
         serv_socket.close();
 
     }
@@ -105,11 +143,15 @@ public class NewServer extends Thread {
         return ip;
     }
 
-
+    protected void updatePacket(byte[] n) {
+        for (int i=1,k=0; i<5; i++) {
+            constrPacket[i] = n[k++];
+        }
+    }
     protected void populate_rt(byte[] b) {
         byte[] ip = null;
         byte[] dh = null;
-        String ip_str = null;
+        //String ip_str = null;
         String dest_host = null;
         for (int i=1, j=0; i<5; i++) {
             ip[j++] = b[i];
@@ -117,21 +159,20 @@ public class NewServer extends Thread {
         for (int k=5,l=0; k<33; k++) {
             dh[l++] = b[k];
         }
-        
         //ip_str = new String(ip,0,ip.length);
         dest_host = new String(dh,0,dh.length);
         RoutingTable.add(new rt_entry(ip, dest_host));
     }
 
-    protected void rtLookup(rt_entry n) {
+    private byte[] rtLookup(rt_entry n) {
         byte[] ip = null;
         
         for (int j=0;j<RoutingTable.size();j++) {
-            if (RoutingTable.contains(n)) {
+            if (n.getHost().equals(RoutingTable.get(j).getHost())) {
                 ip = RoutingTable.get(j).getIP();
             }
-
         }
+        return ip;
     }
 
 
@@ -153,8 +194,6 @@ public class NewServer extends Thread {
             return this.destHost;
         }
         
-
         
     }
-
 }
