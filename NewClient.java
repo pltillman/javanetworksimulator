@@ -14,6 +14,8 @@ public class NewClient {
     protected InetAddress address;
     protected byte[] IP;
     protected String local_ip;
+    protected byte[] constrPacket = new byte[256];
+
 
     public static void main(String[] args) throws IOException {
         new NewClient();
@@ -27,6 +29,7 @@ public class NewClient {
         message = new byte[256];
         address = InetAddress.getLocalHost();
         IP = address.getAddress();
+        String host = address.getHostName();
 
         // Get a string representation of the local ip address
         for (int index=0; index<IP.length; index++) {
@@ -42,7 +45,11 @@ public class NewClient {
         listen();
         
         // this will serve as the basic call for encoding a message
-        message = encode("sample message - add anything here", "localhost", 0);
+        //message = encode("sample message - add anything here", "localhost", 0);
+        
+        //byte f, byte[] host, byte[] ip, String message
+        byte f = 0;
+        message = makePacket(f,host,IP,"Can you see this?");
         
         // Then a packet will be create from the message
         packet = new DatagramPacket(message, message.length, address, SERVER_PORT);
@@ -60,16 +67,16 @@ public class NewClient {
     }
 
 
-    protected byte[] encode(String msg, String host, int flag) {
-        byte[] output = new byte[256];
-        String port = Integer.toString(DEFAULT_PORT);
-
-        String out = local_ip + " " + host + " " + msg +
-                " " + Integer.toString(flag);
-        output = out.getBytes();
-        
-        return output;
-    }
+//    protected byte[] encode(String msg, String host, int flag) {
+//        byte[] output = new byte[256];
+//        String port = Integer.toString(DEFAULT_PORT);
+//
+//        String out = local_ip + " " + host + " " + msg +
+//                " " + Integer.toString(flag);
+//        output = out.getBytes();
+//
+//        return output;
+//    }
 
 
     // We may want to add the listening piece to the server. I suppose
@@ -113,19 +120,21 @@ public class NewClient {
     }
 
     
-    protected byte[] makePacket(byte f, byte[] host, byte[] ip, String message) {
+    protected byte[] makePacket(byte f, String host, byte[] ip, String message) {
 
         constrPacket[0] = f;
         byte[] b = message.getBytes();
+        byte[] h = host.getBytes();
+        System.out.println("host length: " + h.length);
 
-        for (int y=1; y<5; y++) {
-            constrPacket[y] = ip[y];
+        for (int y=1,k=0; y<5; y++) {
+            constrPacket[y] = ip[k++];
         }
-        for (int j=5; j<33; j++) {
-            constrPacket[j] = host[j];
+        for (int j=5, l=0; j<h.length; j++) {
+            constrPacket[j] = h[l++];
         }
-        for (int p=33; p<256; p++) {
-            constrPacket[p] = b[p];
+        for (int p=33,w=0; p<b.length; p++) {
+            constrPacket[p] = b[w++];
         }
         return constrPacket;
     }
