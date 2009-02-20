@@ -11,6 +11,9 @@ public class NewClient {
     protected final int SERVER_PORT = 4449;
     protected final int expiration = 20;
     protected byte[] message;
+    protected InetAddress address;
+    protected byte[] IP;
+    protected String local_ip;
 
     public static void main(String[] args) throws IOException {
         new NewClient();
@@ -21,13 +24,23 @@ public class NewClient {
 
     public NewClient() throws IOException {
 
-        listen();
-
         message = new byte[256];
+        address = InetAddress.getLocalHost();
+        IP = address.getAddress();
 
-        InetAddress address = InetAddress.getByName("localhost");
+        // Get a string representation of the local ip address
+        for (int index=0; index<IP.length; index++) {
+            if (index > 0) {
+                local_ip += ".";
+                //System.out.print(".");
+            }
+            local_ip += ((int)IP[index]) & 0xff;
+            //System.out.print(((int)IP[index])& 0xff);
 
-
+        }
+        System.out.println("My local IP address is: " + local_ip);
+        listen();
+        
         // this will serve as the basic call for encoding a message
         message = encode("sample message - add anything here", "localhost", 0);
         
@@ -51,17 +64,10 @@ public class NewClient {
         byte[] output = new byte[256];
         String port = Integer.toString(DEFAULT_PORT);
 
-        try {
-            InetAddress local_host = InetAddress.getLocalHost();
-            String p = new String(local_host.getAddress());
-            String out = p + " " + host + " " + msg +
-                    " " + Integer.toString(flag);
-            output = out.getBytes();
-            System.out.println(p);
-        } catch (UnknownHostException uhe) {
-            uhe.printStackTrace();
-
-        }
+        String out = local_ip + " " + host + " " + msg +
+                " " + Integer.toString(flag);
+        output = out.getBytes();
+        
         return output;
     }
 
@@ -71,15 +77,15 @@ public class NewClient {
     protected void listen()throws IOException {
 
         Boolean added = false;
-        InetAddress address = null;
+        InetAddress b_address = null;
         MulticastSocket bsocket = null;
 
         while (!added) {
 
             // Create a broadcast range & socket and then bind them
-            address = InetAddress.getByName("230.0.0.1");
+            b_address = InetAddress.getByName("230.0.0.1");
             bsocket = new MulticastSocket(BCAST_PORT);
-            bsocket.joinGroup(address);
+            bsocket.joinGroup(b_address);
 
             // Create an emtpy packet and call to recieve
             byte[] msg = new byte[256];
@@ -93,11 +99,13 @@ public class NewClient {
             // Check the message for a broadcast call
             if (received.equals("ip")) {
                 added = true;
+                //setup a new socket and send ip back to the server
+                //add code here
             }
         }
 
         if (true) {
-            bsocket.leaveGroup(address);
+            bsocket.leaveGroup(b_address);
             bsocket.close();
             
         }
