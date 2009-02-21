@@ -66,6 +66,7 @@ public class NewServer extends Thread {
                         RoutingTable.add(target);
                     } else {
                         System.out.println(" flag = 1 else");
+                        
                         //reply with ack message
                     }
                     break;
@@ -162,6 +163,7 @@ public class NewServer extends Thread {
         byte[] ip = new byte[4];
         for (int j=1,k=0; j<5; j++) {
             ip[k] = p[j];
+            System.out.println("packet at index " + j + "\t" + p[j]);
             k++;
         }
         return getIPString(ip);

@@ -28,11 +28,15 @@ public class NewClient {
     public NewClient() throws IOException {
 
         Scanner scan = new Scanner(System.in);
-        
+
         message = new byte[256];
         address = InetAddress.getLocalHost();
         IP = address.getAddress();
         host = address.getHostName();
+
+    }
+
+    protected void sendMSG(String s) throws IOException {
 
         // Get a string representation of the local ip address
         for (int index=0; index<IP.length; index++) {
@@ -46,16 +50,16 @@ public class NewClient {
         local_ip = local_ip.substring(4);
 
         System.out.println("My local IP address is: " + local_ip);
-        broadCastIP();
-        
+        //broadCastIP();
+
         // this will serve as the basic call for encoding a message
         //message = encode("sample message - add anything here", "localhost", 0);
-        
+
         //byte f, byte[] host, byte[] ip, String message
-        
+
         byte f = 0;
         IP[0] = 1;
-        message = makePacket(f,host,IP,"Can you see this?");
+        message = makePacket(f,host,IP,s);
 
         // Then a packet will be create from the message
         packet = new DatagramPacket(message, message.length, address, SERVER_PORT);
@@ -72,9 +76,7 @@ public class NewClient {
             }
             i++;
         }
-
     }
-
 
     protected void broadCastIP() throws IOException {
 
@@ -97,7 +99,8 @@ public class NewClient {
     }
     
     protected byte[] makePacket(byte f, String host, byte[] ip, String message) {
-
+        constrPacket = null;
+        constrPacket = new byte[256];
         constrPacket[0] = f;
         byte[] b = message.getBytes();
         byte[] h = host.getBytes();
