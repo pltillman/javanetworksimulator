@@ -118,6 +118,7 @@ public class ShellIMApp extends JFrame{
                                                                                         //will be moved to the subscribe to network method to come later
                 setIconImage(greenIcon);    //green light will appear in place of red one on title bar
                 try {
+                    System.out.println("sending message: " + input);
                     client.sendMSG(input);
                 } catch (IOException ioe) {
                     ioe.printStackTrace();
