@@ -27,47 +27,56 @@ public class NewServer extends Thread {
 
         super(n);
 
-        callForClients();
-
+        listen();
+        System.out.println("after listen");
         byte[] message = new byte[256];
+
+        address = InetAddress.getLocalHost();
+        IP = address.getAddress();
 
         packet = new DatagramPacket(message, message.length);
         serv_socket = new DatagramSocket(DEFAULT_PORT);
 
-        address = InetAddress.getLocalHost();
-        IP = address.getAddress();
-        
-        for (int j=0; j<10; j++) {
-            serv_socket.receive(packet);
+        serv_socket.receive(packet);
+        while (!serv_socket.isClosed()) {
+            System.out.println("Inside");
+
             byte[] rcvdPacket = packet.getData();
+            System.out.println(rcvdPacket[0]);
             //System.out.println(extractDestHost(rcvdPacket));
 
             // Get a string representation of the local ip address
-            for (int index=0; index<IP.length; index++) {
-                if (index > 0) {
-                    local_ip += ".";
-                }
-                local_ip += ((int)IP[index]) & 0xff;
-            }
+//            for (int index=0; index<IP.length; index++) {
+//                if (index > 0) {
+//                    local_ip += ".";
+//                }
+//                local_ip += ((int)IP[index]) & 0xff;
+//            }
 
-            rt_entry target = new rt_entry(rcvdPacket, local_ip);
+            rt_entry target = new rt_entry(rcvdPacket, extractIP(rcvdPacket));
             byte[] br = rtLookup(target);
 
-
-            switch(rcvdPacket[0]) {
-
+            System.out.println("Inside");
+            System.out.println(rcvdPacket[0]);
+            int i = rcvdPacket[0];
+            switch(i) {
+                
                 case 0:
                     if (br != null) {
+                        System.out.println("rt lookup flag bit detected");
                         updatePacket(br);
                     } else {
+                        System.out.println(" br = null else");
                         //sendMessage() to client.. undeliverable flag = 3
                     }
                     break;
 
                 case 1:                    
                     if (br != null) {
+                        System.out.println("rt.add flag bit detected");
                         RoutingTable.add(target);
                     } else {
+                        System.out.println(" flag = 1 else");
                         //reply with ack message
                     }
                     break;
@@ -78,39 +87,54 @@ public class NewServer extends Thread {
             }
             
             String received = new String(rcvdPacket, 0, rcvdPacket.length);
-            System.out.println(extractDestHost(rcvdPacket) + "\t" + extractIP(rcvdPacket));
+            System.out.println("Host: " + extractDestHost(rcvdPacket) + "\tIP: "
+                    + extractIP(rcvdPacket));
+
+            serv_socket.close();
         }
-        serv_socket.close();
+        
 
     }
 
 
-    protected void callForClients() throws IOException {
+    // We may want to add the listening piece to the server. I suppose
+    // it makes more sense that way.
+    protected void listen() throws IOException {
 
+        //Boolean added = false;
+        InetAddress b_address = null;
+        MulticastSocket bsocket = null;
 
-        byte[] msg = new byte[256];
-        MulticastSocket socket = new MulticastSocket(BCAST_PORT);
-        InetAddress group = InetAddress.getByName("230.0.0.1");
-        String call = "ip";
-        msg = call.getBytes();
-        
-        packet = new DatagramPacket(msg, msg.length, group, BCAST_PORT);
-        
-        try {
-            socket.send(packet);
-        } catch (IOException ioe) {
-            ioe.printStackTrace();
+        b_address = InetAddress.getByName("230.0.0.1");
+        bsocket = new MulticastSocket(BCAST_PORT);
+        bsocket.joinGroup(b_address);
+
+        while (!bsocket.isClosed()) {
+
+            // Create a broadcast range & socket and then bind them
+
+            // Create an emtpy packet and call to recieve
+            byte[] msg = new byte[256];
+            packet = new DatagramPacket(msg, msg.length);
+            bsocket.receive(packet);
+
+            msg = packet.getData();
+            // Convert the byte[] to String and print it
+            
+            System.out.println("Received message: " + msg[0] + " \t"+ extractDestHost(msg));
+
+            // Check the message for a broadcast call
+            if (msg[0] == 1) {
+                System.out.println("Closing socket...");
+                bsocket.leaveGroup(b_address);
+                bsocket.close();
+            //setup a new socket and send ip back to the server
+            //add code here
+            }
+
         }
-
-		try {
-		    sleep((long)(Math.random() /* * 3000 to pause for 3 seconds and wait for a response */ ));
-		} catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-
-        socket.close();
-
     }
+
 
 
     protected byte[] makePacket(byte f, String host, byte[] ip, String message) {
@@ -148,9 +172,11 @@ public class NewServer extends Thread {
     protected String extractIP(byte[] p) {
         byte[] ip = new byte[4];
         for (int j=1,k=0; j<5; j++) {
-            ip[k++] = p[j];
+            ip[k] = p[j];
+            //System.out.println(ip[k]);
+            System.out.println("index " + j + (((int)p[j]) & 0xff));
+            k++;
         }
-
         return getIPString(ip);
     }
 
@@ -194,9 +220,11 @@ public class NewServer extends Thread {
                 //System.out.print(".");
             }
             local_ip += ((int)o[index]) & 0xff;
+            //System.out.println("index " + index + (((int)o[index]) & 0xff));
             //System.out.print(((int)IP[index])& 0xff);
 
         }
+        //local_ip = local_ip.substring(4);
         return local_ip;
     }
     

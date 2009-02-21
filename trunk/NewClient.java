@@ -1,6 +1,7 @@
 
 import java.net.*;
 import java.io.*;
+import java.util.Scanner;
 
 public class NewClient {
 
@@ -15,6 +16,7 @@ public class NewClient {
     protected byte[] IP;
     protected String local_ip;
     protected byte[] constrPacket = new byte[256];
+    protected String host;
 
 
     public static void main(String[] args) throws IOException {
@@ -23,37 +25,41 @@ public class NewClient {
 
     
 
-
     public NewClient() throws IOException {
 
+        Scanner scan = new Scanner(System.in);
+        
         message = new byte[256];
         address = InetAddress.getLocalHost();
         IP = address.getAddress();
-        String host = address.getHostName();
+        host = address.getHostName();
 
         // Get a string representation of the local ip address
         for (int index=0; index<IP.length; index++) {
             if (index > 0) {
                 local_ip += ".";
-                //System.out.print(".");
             }
             local_ip += ((int)IP[index]) & 0xff;
-            //System.out.print(((int)IP[index])& 0xff);
-
         }
+
+        //strip of the stupid null that keeps showing up for some reason
+        local_ip = local_ip.substring(4);
+
         System.out.println("My local IP address is: " + local_ip);
-        listen();
+        broadCastIP();
         
         // this will serve as the basic call for encoding a message
         //message = encode("sample message - add anything here", "localhost", 0);
         
         //byte f, byte[] host, byte[] ip, String message
-        byte f = 0;
-        message = makePacket(f,host,IP,"Can you see this?");
         
+        byte f = 0;
+        IP[0] = 1;
+        message = makePacket(f,host,IP,"Can you see this?");
+
         // Then a packet will be create from the message
         packet = new DatagramPacket(message, message.length, address, SERVER_PORT);
-        
+
         try {
             client_socket = new DatagramSocket();
             client_socket.setSoTimeout(expiration);
@@ -79,46 +85,35 @@ public class NewClient {
 //    }
 
 
-    // We may want to add the listening piece to the server. I suppose
-    // it makes more sense that way.
-    protected void listen()throws IOException {
 
-        Boolean added = false;
-        InetAddress b_address = null;
-        MulticastSocket bsocket = null;
 
-        while (!added) {
+    protected void broadCastIP() throws IOException {
 
-            // Create a broadcast range & socket and then bind them
-            b_address = InetAddress.getByName("230.0.0.1");
-            bsocket = new MulticastSocket(BCAST_PORT);
-            bsocket.joinGroup(b_address);
+        byte[] msg = new byte[256];
+        MulticastSocket socket = new MulticastSocket(BCAST_PORT);
+        InetAddress group = InetAddress.getByName("230.0.0.1");
+        byte f = 1;
+        msg = makePacket(f, host, IP, "Test");
 
-            // Create an emtpy packet and call to recieve
-            byte[] msg = new byte[256];
-            packet = new DatagramPacket(msg, msg.length);
-            bsocket.receive(packet);
+        packet = new DatagramPacket(msg, msg.length, group, BCAST_PORT);
 
-            // Convert the byte[] to String and print it
-            String received = new String(packet.getData(), 0, packet.getLength());
-            System.out.println("Received message: " + received);
-
-            // Check the message for a broadcast call
-            if (received.equals("ip")) {
-                added = true;
-                //setup a new socket and send ip back to the server
-                //add code here
-            }
+        try {
+            socket.send(packet);
+        } catch (IOException ioe) {
+            ioe.printStackTrace();
         }
 
-        if (true) {
-            bsocket.leaveGroup(b_address);
-            bsocket.close();
-            
-        }
+        //sleep((long)(Math.random() /* * 3000 to pause for 3 seconds and wait for a response */ ));
+        
+//		try {
+//
+//		} catch (InterruptedException e) {
+//            e.printStackTrace();
+//        }
+
+        socket.close();
 
     }
-
     
     protected byte[] makePacket(byte f, String host, byte[] ip, String message) {
 
