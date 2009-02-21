@@ -27,8 +27,6 @@ public class NewClient {
 
     public NewClient() throws IOException {
 
-        Scanner scan = new Scanner(System.in);
-
         message = new byte[256];
         address = InetAddress.getLocalHost();
         IP = address.getAddress();
@@ -45,17 +43,10 @@ public class NewClient {
             }
             local_ip += ((int)IP[index]) & 0xff;
         }
-
         //strip of the stupid null that keeps showing up for some reason
         local_ip = local_ip.substring(4);
 
         System.out.println("My local IP address is: " + local_ip);
-        //broadCastIP();
-
-        // this will serve as the basic call for encoding a message
-        //message = encode("sample message - add anything here", "localhost", 0);
-
-        //byte f, byte[] host, byte[] ip, String message
 
         byte f = 0;
         IP[0] = 1;
@@ -64,7 +55,7 @@ public class NewClient {
         // Then a packet will be create from the message
         packet = new DatagramPacket(message, message.length, address, SERVER_PORT);
         int i = 0;
-        while (i<10) {
+        //while (i<10) {
             try {
                 client_socket = new DatagramSocket();
                 client_socket.setSoTimeout(expiration);
@@ -74,8 +65,8 @@ public class NewClient {
             } catch (SocketException se) {
                 se.printStackTrace();
             }
-            i++;
-        }
+            //i++;
+        //}
     }
 
     protected void broadCastIP() throws IOException {
@@ -95,7 +86,6 @@ public class NewClient {
         }
 
         socket.close();
-
     }
     
     protected byte[] makePacket(byte f, String host, byte[] ip, String message) {

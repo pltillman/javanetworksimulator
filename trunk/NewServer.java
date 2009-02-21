@@ -27,28 +27,37 @@ public class NewServer extends Thread {
 
         super(n);
 
+        listen_BCAST();
         listen();
-        System.out.println("after listen");
-        byte[] message = new byte[256];
+        
 
         address = InetAddress.getLocalHost();
         IP = address.getAddress();
 
-        packet = new DatagramPacket(message, message.length);
-        serv_socket = new DatagramSocket(DEFAULT_PORT);
+    }
 
-        serv_socket.receive(packet);
+
+    protected void listen() {
+
+        //super("22");
+        byte[] message = new byte[256];
+
+        packet = new DatagramPacket(message, message.length);
+        try {
+            serv_socket = new DatagramSocket(DEFAULT_PORT);
+            serv_socket.receive(packet);
+        } catch (IOException ioe) {
+            ioe.printStackTrace();
+        }
+
         while (!serv_socket.isClosed()) {
-            System.out.println("inside");
             byte[] rcvdPacket = packet.getData();
 
             rt_entry target = new rt_entry(rcvdPacket, extractIP(rcvdPacket));
             byte[] br = rtLookup(target);
 
-
             int i = rcvdPacket[0];
             switch(i) {
-                
                 case 0:
                     if (br != null) {
                         System.out.println("rt lookup flag bit detected");
@@ -56,40 +65,32 @@ public class NewServer extends Thread {
                     } else {
                         System.out.println("IP is not registered");
                         RoutingTable.add(target);
-                        //sendMessage() to client.. undeliverable flag = 3
                     }
                     break;
-
-                case 1:                    
+                case 1:
                     if (br != null) {
                         System.out.println("rt.add flag bit detected");
                         RoutingTable.add(target);
                     } else {
                         System.out.println(" flag = 1 else");
-                        
-                        //reply with ack message
                     }
                     break;
-                    
                 default:
                     System.out.println("unrecognized flag bit");
                     break;
             }
-            
-            //String received = new String(rcvdPacket, 0, rcvdPacket.length);
+
             System.out.println("Host: " + extractDestHost(rcvdPacket) + "\tIP: "
-                    + extractIP(rcvdPacket));
+                    + extractIP(rcvdPacket) + "\tMSG: " + extractMSG(rcvdPacket));
 
             serv_socket.close();
         }
-        
 
     }
 
-
     // We may want to add the listening piece to the server. I suppose
     // it makes more sense that way.
-    protected void listen() throws IOException {
+    protected void listen_BCAST() throws IOException {
 
         //Boolean added = false;
         InetAddress b_address = null;
@@ -101,8 +102,6 @@ public class NewServer extends Thread {
 
         while (!bsocket.isClosed()) {
 
-            // Create a broadcast range & socket and then bind them
-
             // Create an emtpy packet and call to recieve
             byte[] msg = new byte[256];
             packet = new DatagramPacket(msg, msg.length);
@@ -111,7 +110,9 @@ public class NewServer extends Thread {
             msg = packet.getData();
             // Convert the byte[] to String and print it
             
-            System.out.println("Received message: " + msg[0] + " \t"+ extractDestHost(msg) + " \t IP " + extractIP(msg));
+            System.out.println("Received message: " + msg[0] + " \t" 
+                    + extractDestHost(msg) + " \t IP " + extractIP(msg)
+                    + "\tMSG: " + extractMSG(msg));
 
             // Check the message for a broadcast call
             if (msg[0] == 1) {
@@ -169,6 +170,17 @@ public class NewServer extends Thread {
         return getIPString(ip);
     }
 
+    protected String extractMSG(byte[] p) {
+//        byte[] m = new byte[222];
+//        for (int i=0,k=33; k<p.length; k++) {
+//            m[i] = p[k];
+//            i++;
+//        }
+        
+        String msg = new String(p,34,222);
+        
+        return msg;
+    }
     protected void updatePacket(byte[] n) {
         for (int i=1,k=0; i<5; i++) {
             constrPacket[i] = n[k++];
