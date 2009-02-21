@@ -39,25 +39,13 @@ public class NewServer extends Thread {
 
         serv_socket.receive(packet);
         while (!serv_socket.isClosed()) {
-            System.out.println("Inside");
-
+            System.out.println("inside");
             byte[] rcvdPacket = packet.getData();
-            System.out.println(rcvdPacket[0]);
-            //System.out.println(extractDestHost(rcvdPacket));
-
-            // Get a string representation of the local ip address
-//            for (int index=0; index<IP.length; index++) {
-//                if (index > 0) {
-//                    local_ip += ".";
-//                }
-//                local_ip += ((int)IP[index]) & 0xff;
-//            }
 
             rt_entry target = new rt_entry(rcvdPacket, extractIP(rcvdPacket));
             byte[] br = rtLookup(target);
 
-            System.out.println("Inside");
-            System.out.println(rcvdPacket[0]);
+
             int i = rcvdPacket[0];
             switch(i) {
                 
@@ -66,7 +54,8 @@ public class NewServer extends Thread {
                         System.out.println("rt lookup flag bit detected");
                         updatePacket(br);
                     } else {
-                        System.out.println(" br = null else");
+                        System.out.println("IP is not registered");
+                        RoutingTable.add(target);
                         //sendMessage() to client.. undeliverable flag = 3
                     }
                     break;
@@ -86,7 +75,7 @@ public class NewServer extends Thread {
                     break;
             }
             
-            String received = new String(rcvdPacket, 0, rcvdPacket.length);
+            //String received = new String(rcvdPacket, 0, rcvdPacket.length);
             System.out.println("Host: " + extractDestHost(rcvdPacket) + "\tIP: "
                     + extractIP(rcvdPacket));
 
@@ -121,7 +110,7 @@ public class NewServer extends Thread {
             msg = packet.getData();
             // Convert the byte[] to String and print it
             
-            System.out.println("Received message: " + msg[0] + " \t"+ extractDestHost(msg));
+            System.out.println("Received message: " + msg[0] + " \t"+ extractDestHost(msg) + " \t IP " + extractIP(msg));
 
             // Check the message for a broadcast call
             if (msg[0] == 1) {
@@ -173,8 +162,6 @@ public class NewServer extends Thread {
         byte[] ip = new byte[4];
         for (int j=1,k=0; j<5; j++) {
             ip[k] = p[j];
-            //System.out.println(ip[k]);
-            System.out.println("index " + j + (((int)p[j]) & 0xff));
             k++;
         }
         return getIPString(ip);
@@ -207,25 +194,26 @@ public class NewServer extends Thread {
         for (int j=0;j<RoutingTable.size();j++) {
             if (n.getHost().equals(RoutingTable.get(j).getHost())) {
                 ip = RoutingTable.get(j).getIP();
+                System.out.println("Added entry to routing table");
             }
         }
         return ip;
     }
 
     private String getIPString(byte[] o) {
-        
+        String ipStr = null;
         for (int index=0; index<o.length; index++) {
             if (index > 0) {
-                local_ip += ".";
+                ipStr += ".";
                 //System.out.print(".");
             }
-            local_ip += ((int)o[index]) & 0xff;
+            ipStr += ((int)o[index]) & 0xff;
             //System.out.println("index " + index + (((int)o[index]) & 0xff));
             //System.out.print(((int)IP[index])& 0xff);
 
         }
-        //local_ip = local_ip.substring(4);
-        return local_ip;
+        ipStr = ipStr.substring(4);
+        return ipStr;
     }
     
     class rt_entry {

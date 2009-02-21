@@ -59,32 +59,21 @@ public class NewClient {
 
         // Then a packet will be create from the message
         packet = new DatagramPacket(message, message.length, address, SERVER_PORT);
+        int i = 0;
+        while (i<10) {
+            try {
+                client_socket = new DatagramSocket();
+                client_socket.setSoTimeout(expiration);
+                client_socket.send(packet);
+                System.out.println("message sent successfully");
 
-        try {
-            client_socket = new DatagramSocket();
-            client_socket.setSoTimeout(expiration);
-            client_socket.send(packet);
-            System.out.println("message sent successfully");
-
-        } catch (SocketException se) {
-            se.printStackTrace();
+            } catch (SocketException se) {
+                se.printStackTrace();
+            }
+            i++;
         }
 
     }
-
-
-//    protected byte[] encode(String msg, String host, int flag) {
-//        byte[] output = new byte[256];
-//        String port = Integer.toString(DEFAULT_PORT);
-//
-//        String out = local_ip + " " + host + " " + msg +
-//                " " + Integer.toString(flag);
-//        output = out.getBytes();
-//
-//        return output;
-//    }
-
-
 
 
     protected void broadCastIP() throws IOException {
@@ -102,14 +91,6 @@ public class NewClient {
         } catch (IOException ioe) {
             ioe.printStackTrace();
         }
-
-        //sleep((long)(Math.random() /* * 3000 to pause for 3 seconds and wait for a response */ ));
-        
-//		try {
-//
-//		} catch (InterruptedException e) {
-//            e.printStackTrace();
-//        }
 
         socket.close();
 
