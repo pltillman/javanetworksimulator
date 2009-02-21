@@ -52,19 +52,25 @@ public class NewServer extends Thread {
      *
      **************************************************************/
     protected void listen() {
-
-        //super("22");
-        byte[] message = new byte[256];
-
-        packet = new DatagramPacket(message, message.length);
+        
         try {
             serv_socket = new DatagramSocket(DEFAULT_PORT);
-            serv_socket.receive(packet);
         } catch (IOException ioe) {
             ioe.printStackTrace();
         }
 
         while (!serv_socket.isClosed()) {
+
+            byte[] message = new byte[256];
+
+            packet = new DatagramPacket(message, message.length);
+            try {
+                
+                serv_socket.receive(packet);
+            } catch (IOException ioe) {
+                ioe.printStackTrace();
+            }
+
             byte[] rcvdPacket = packet.getData();
 
             rt_entry target = new rt_entry(rcvdPacket, extractIP(rcvdPacket));
@@ -97,7 +103,7 @@ public class NewServer extends Thread {
             System.out.println("Host: " + extractDestHost(rcvdPacket) + "\tIP: "
                     + extractIP(rcvdPacket) + "\tMSG: " + extractMSG(rcvdPacket));
 
-            serv_socket.close();
+            //serv_socket.close();
         }
 
     }

@@ -1,7 +1,6 @@
 
 import java.net.*;
 import java.io.*;
-import java.util.Scanner;
 
 public class NewClient {
 
@@ -34,6 +33,11 @@ public class NewClient {
 
     }
 
+    /**************************************************************
+     *
+     * @param s
+     * @throws java.io.IOException
+     **************************************************************/
     protected void sendMSG(String s) throws IOException {
 
         // Get a string representation of the local ip address
@@ -67,6 +71,10 @@ public class NewClient {
 
     }
 
+    /**************************************************************
+     *
+     * @throws java.io.IOException
+     **************************************************************/
     protected void broadCastIP() throws IOException {
 
         byte[] msg = new byte[256];
@@ -85,7 +93,15 @@ public class NewClient {
 
         socket.close();
     }
-    
+
+    /**************************************************************
+     *
+     * @param f
+     * @param host
+     * @param ip
+     * @param message
+     * @return
+     **************************************************************/
     protected byte[] makePacket(byte f, String host, byte[] ip, String message) {
         //constrPacket = null;
         constrPacket = new byte[256];
@@ -115,6 +131,11 @@ public class NewClient {
         return constrPacket;
     }
 
+    /**************************************************************
+     *
+     * @param p
+     * @return
+     **************************************************************/
     protected String extractDestHost(byte[] p) {
         byte[] h = null;
         for (int j=5,k=0; j<33; j++) {
@@ -125,6 +146,11 @@ public class NewClient {
 
     }
 
+    /**************************************************************
+     *
+     * @param p
+     * @return
+     **************************************************************/
     protected byte[] extractIP(byte[] p) {
         byte[] ip = null;
         for (int j=1,k=0; j<5; j++) {
@@ -133,6 +159,10 @@ public class NewClient {
         return ip;
     }
 
+    /**************************************************************
+     * 
+     * @param n
+     **************************************************************/
     protected void updatePacket(byte[] n) {
         for (int i=1,k=0; i<5; i++) {
             constrPacket[i] = n[k++];
