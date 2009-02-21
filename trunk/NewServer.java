@@ -2,6 +2,11 @@ import java.net.*;
 import java.io.*;
 import java.util.ArrayList;
 
+
+/**************************************************************
+ *
+ * @author patrick tillman
+ **************************************************************/
 public class NewServer extends Thread {
 
     protected DatagramSocket serv_socket = null;
@@ -19,24 +24,33 @@ public class NewServer extends Thread {
 
     public static void main(String[] args) throws IOException {
 
-        new NewServer("s1");
+        new NewServer("s1").start();
     }
 
 
+    /**************************************************************
+     * Default constructor
+     * 
+     * @param n
+     * @throws java.io.IOException
+     **************************************************************/
     public NewServer(String n) throws IOException {
 
         super(n);
 
         listen_BCAST();
+        
         listen();
         
-
         address = InetAddress.getLocalHost();
         IP = address.getAddress();
 
     }
 
-
+    /**************************************************************
+     *  Method to listen for any incoming traffic
+     *
+     **************************************************************/
     protected void listen() {
 
         //super("22");
@@ -88,8 +102,14 @@ public class NewServer extends Thread {
 
     }
 
-    // We may want to add the listening piece to the server. I suppose
-    // it makes more sense that way.
+
+    /**************************************************************
+     * Method that instructs the Server to listent for any incoming
+     * broadcasts. These broadcasts will extract the pertinent data
+     * and update the Routing Table accordingly.
+     *
+     * @throws java.io.IOException
+     **************************************************************/
     protected void listen_BCAST() throws IOException {
 
         //Boolean added = false;
@@ -128,26 +148,53 @@ public class NewServer extends Thread {
 
 
 
+    /**************************************************************
+     * Method to create a structured packet.
+     *
+     * @param f - Flag bit
+     * @param host - Destination host name
+     * @param ip - Destination IP address
+     * @param message - Message to be encoded
+     * @return - a byte[] array that will be sent as a datagram packet
+     *************************************************************/
+
     protected byte[] makePacket(byte f, String host, byte[] ip, String message) {
 
+        constrPacket = new byte[256];
         constrPacket[0] = f;
         byte[] b = message.getBytes();
         byte[] h = host.getBytes();
 
         for (int y=1,k=0; y<5; y++) {
-            constrPacket[y] = ip[k++];
+            constrPacket[y] = ip[k];
+            System.out.println("IP encoded into packet...");
+            k++;
         }
-        for (int j=5, l=0; j<h.length; j++) {
-            constrPacket[j] = h[l++];
+        if (h.length < 33 && b.length < 256) {
+            for (int j=5, l=0; j<h.length; j++) {
+                constrPacket[j] = h[l];
+                System.out.println("Host encoded into packet...");
+                l++;
+            }
+
+            for (int p=33,w=0; w<b.length; p++) {
+                constrPacket[p] = b[w];
+                System.out.println("Message encoded into packet...");
+                w++;
+            }
         }
-        for (int p=33,w=0; p<256; p++) {
-            constrPacket[p] = b[w++];
-        }
+        
         return constrPacket;
     }
 
 
-    
+    /**************************************************************
+     * Method to extract a String representation of the Dest Host
+     * embedded in the packet.
+     *
+     * @param p - The received packet.
+     * @return - String version of the destination host.
+     **************************************************************/
     protected String extractDestHost(byte[] p) {
         byte[] h = new byte[28];
         
@@ -160,6 +207,13 @@ public class NewServer extends Thread {
 
     }
 
+    /**************************************************************
+     * Method that extracts a String representation of the IP
+     * address from the received packet.
+     *
+     * @param p - The received packet
+     * @return - String representation of the IP address
+     **************************************************************/
     protected String extractIP(byte[] p) {
         byte[] ip = new byte[4];
         for (int j=1,k=0; j<5; j++) {
@@ -170,22 +224,36 @@ public class NewServer extends Thread {
         return getIPString(ip);
     }
 
+    /**************************************************************
+     * Method that extracts the message from the received packet.
+     *
+     * @param p - The received packet
+     * @return - String represenation of the embedded message to be sent
+     **************************************************************/
     protected String extractMSG(byte[] p) {
-//        byte[] m = new byte[222];
-//        for (int i=0,k=33; k<p.length; k++) {
-//            m[i] = p[k];
-//            i++;
-//        }
-        
-        String msg = new String(p,34,222);
-        
+        String msg = new String(p,33,222);
         return msg;
     }
+
+    /**************************************************************
+     * Method to replace the packet's IP address with the resolved
+     * address from the Routing Table.
+     *
+     * @param n - The recevied packet.
+     **************************************************************/
     protected void updatePacket(byte[] n) {
         for (int i=1,k=0; i<5; i++) {
             constrPacket[i] = n[k++];
         }
     }
+
+
+    /**************************************************************
+     * Method that will take the packet, extract pertinent data from
+     * it and then add it to the routing table.
+     *
+     * @param b - The received packet.
+     **************************************************************/
     protected void populate_rt(byte[] b) {
         byte[] ip = null;
         byte[] dh = null;
@@ -202,6 +270,12 @@ public class NewServer extends Thread {
         RoutingTable.add(new rt_entry(ip, dest_host));
     }
 
+    /**************************************************************
+     * Method to lookup in the Routing Table for an existing entry.
+     *
+     * @param n - Routing table entry
+     * @return - byte[] representation of the found IP, otherwise NULL
+     **************************************************************/
     private byte[] rtLookup(rt_entry n) {
         byte[] ip = null;
         
@@ -214,22 +288,29 @@ public class NewServer extends Thread {
         return ip;
     }
 
+    /**************************************************************
+     * Method to get the String representation of IP address from the packet.
+     *
+     * @param o - The received packet.
+     * @return - String representation of the IP address.
+     **************************************************************/
     private String getIPString(byte[] o) {
         String ipStr = null;
         for (int index=0; index<o.length; index++) {
             if (index > 0) {
                 ipStr += ".";
-                //System.out.print(".");
             }
             ipStr += ((int)o[index]) & 0xff;
-            //System.out.println("index " + index + (((int)o[index]) & 0xff));
-            //System.out.print(((int)IP[index])& 0xff);
-
         }
         ipStr = ipStr.substring(4);
         return ipStr;
     }
-    
+
+
+
+    /**************************************************************
+     * Class to create a Routing Table object.
+     **************************************************************/
     class rt_entry {
 
         protected byte[] ip;

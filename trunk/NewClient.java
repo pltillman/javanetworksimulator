@@ -50,23 +50,21 @@ public class NewClient {
 
         byte f = 0;
         IP[0] = 1;
+        System.out.println("client is sending message: " + s);
         message = makePacket(f,host,IP,s);
 
-        // Then a packet will be create from the message
         packet = new DatagramPacket(message, message.length, address, SERVER_PORT);
-        int i = 0;
-        //while (i<10) {
-            try {
-                client_socket = new DatagramSocket();
-                client_socket.setSoTimeout(expiration);
-                client_socket.send(packet);
-                System.out.println("message sent successfully");
 
-            } catch (SocketException se) {
-                se.printStackTrace();
-            }
-            //i++;
-        //}
+        try {
+            client_socket = new DatagramSocket();
+            //client_socket.setSoTimeout(expiration);
+            client_socket.send(packet);
+            System.out.println("message sent successfully");
+
+        } catch (SocketException se) {
+            se.printStackTrace();
+        }
+
     }
 
     protected void broadCastIP() throws IOException {
@@ -89,22 +87,31 @@ public class NewClient {
     }
     
     protected byte[] makePacket(byte f, String host, byte[] ip, String message) {
-        constrPacket = null;
+        //constrPacket = null;
         constrPacket = new byte[256];
         constrPacket[0] = f;
         byte[] b = message.getBytes();
         byte[] h = host.getBytes();
-        System.out.println("host length: " + h.length);
 
         for (int y=1,k=0; y<5; y++) {
-            constrPacket[y] = ip[k++];
+            constrPacket[y] = ip[k];
+            System.out.println("IP encoded into packet...");
+            k++;
         }
-        for (int j=5, l=0; j<h.length; j++) {
-            constrPacket[j] = h[l++];
+        if (h.length < 33 && b.length < 256) {
+            for (int j=5, l=0; j<h.length; j++) {
+                constrPacket[j] = h[l];
+                System.out.println("Host encoded into packet...");
+                l++;
+            }
+            
+            for (int p=33,w=0; w<b.length; p++) {
+                constrPacket[p] = b[w];
+                System.out.println("Message encoded into packet...");
+                w++;
+            }
         }
-        for (int p=33,w=0; p<b.length; p++) {
-            constrPacket[p] = b[w++];
-        }
+
         return constrPacket;
     }
 
