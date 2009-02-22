@@ -22,8 +22,6 @@ public class NewClient {
         new NewClient();
     }
 
-    
-
     public NewClient() throws IOException {
 
         message = new byte[256];
@@ -39,7 +37,19 @@ public class NewClient {
      * @throws java.io.IOException
      **************************************************************/
     protected void sendMSG(String s) throws IOException {
+//        // Get a string representation of the local ip address
+//        for (int index=0; index<IP.length; index++) {
+//            if (index > 0) {
+//                local_ip += ".";
+//            }
+//            local_ip += ((int)IP[index]) & 0xff;
+//        }
+//        //strip of the stupid null that keeps showing up for some reason
+//        local_ip = local_ip.substring(4);
+//        System.out.println("My local IP address is: " + local_ip);
 
+<<<<<<< .mine
+=======
         /* - no longer needed
         // Get a string representation of the local ip address
         for (int index=0; index<IP.length; index++) {
@@ -55,11 +65,10 @@ public class NewClient {
         System.out.println("My local IP address is: " + address.getHostAddress());
 		  System.out.println("My local machine name is: " + host);
 
+>>>>>>> .r38
         byte f = 0;
-        IP[0] = 1;
         System.out.println("client is sending message: " + s);
         message = makePacket(f,host,IP,s);
-
         packet = new DatagramPacket(message, message.length, address, SERVER_PORT);
 
         try {
@@ -71,9 +80,14 @@ public class NewClient {
         } catch (SocketException se) {
             se.printStackTrace();
         }
-
     }
 
+
+    protected String rcvMSG() {
+        String response = null;
+        
+        return response;
+    }
     /**************************************************************
      *
      * @throws java.io.IOException
@@ -113,21 +127,21 @@ public class NewClient {
         byte[] h = host.getBytes();
 
         for (int y=1,k=0; y<5; y++) {
-            constrPacket[y] = ip[k];
-            System.out.println("IP encoded into packet...");
-            k++;
+            constrPacket[y] = ip[k++];
+            //System.out.println("IP encoded into packet...");
+            //k++;
         }
         if (h.length < 33 && b.length < 256) {
             for (int j=5, l=0; j<h.length; j++) {
-                constrPacket[j] = h[l];
-                System.out.println("Host encoded into packet...");
-                l++;
+                constrPacket[j] = h[l++];
+                //System.out.println("Host encoded into packet...");
+                //l++;
             }
             
             for (int p=33,w=0; w<b.length; p++) {
-                constrPacket[p] = b[w];
-                System.out.println("Message encoded into packet...");
-                w++;
+                constrPacket[p] = b[w++];
+                //System.out.println("Message encoded into packet...");
+                //w++;
             }
         }
 
