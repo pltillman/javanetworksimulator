@@ -11,10 +11,8 @@ public class NewServer extends Thread {
 
     protected DatagramSocket serv_socket = null;
     protected DatagramPacket packet = null;
-    protected final int DEFAULT_PORT = 4449;
-    protected final int BCAST_PORT = 7872;
-    protected final int expiration = 2000;
-    protected final int THREE_SECONDS = 3000;
+    protected final int DEFAULT_PORT = 4449, BCAST_PORT = 7872;
+    protected final int expiration = 2000, THREE_SECONDS = 3000;
     protected byte[] constrPacket = new byte[256];
     private static ArrayList<rt_entry> RoutingTable = new ArrayList<rt_entry>();
     protected InetAddress address;
@@ -64,8 +62,8 @@ public class NewServer extends Thread {
             byte[] message = new byte[256];
 
             packet = new DatagramPacket(message, message.length);
+
             try {
-                
                 serv_socket.receive(packet);
             } catch (IOException ioe) {
                 ioe.printStackTrace();
@@ -134,6 +132,8 @@ public class NewServer extends Thread {
             bsocket.receive(packet);
 
             msg = packet.getData();
+            rt_entry target = new rt_entry(msg, extractIP(msg));
+            byte[] br = rtLookup(target);
             // Convert the byte[] to String and print it
             
             System.out.println("Received message: " + msg[0] + " \t" 
@@ -141,12 +141,16 @@ public class NewServer extends Thread {
                     + "\tMSG: " + extractMSG(msg));
 
             // Check the message for a broadcast call
-            if (msg[0] == 1) {
-                System.out.println("Closing socket...");
+            if (msg[0] == 1 && br == null) {
+                System.out.println("Closing broadcast socket...");
                 bsocket.leaveGroup(b_address);
                 bsocket.close();
+                RoutingTable.add(target);
+                System.out.println("Entry added to routing table");
             //setup a new socket and send ip back to the server
             //add code here
+            } else {
+                System.out.println("Flag bit = " + msg[0] + " and " + br);
             }
 
         }
@@ -172,24 +176,17 @@ public class NewServer extends Thread {
         byte[] h = host.getBytes();
 
         for (int y=1,k=0; y<5; y++) {
-            constrPacket[y] = ip[k];
-            System.out.println("IP encoded into packet...");
-            k++;
+            constrPacket[y] = ip[k++];
         }
         if (h.length < 33 && b.length < 256) {
             for (int j=5, l=0; j<h.length; j++) {
-                constrPacket[j] = h[l];
-                System.out.println("Host encoded into packet...");
-                l++;
+                constrPacket[j] = h[l++];
             }
 
             for (int p=33,w=0; w<b.length; p++) {
-                constrPacket[p] = b[w];
-                System.out.println("Message encoded into packet...");
-                w++;
+                constrPacket[p] = b[w++];
             }
         }
-        
         return constrPacket;
     }
 
@@ -224,7 +221,7 @@ public class NewServer extends Thread {
         byte[] ip = new byte[4];
         for (int j=1,k=0; j<5; j++) {
             ip[k] = p[j];
-            System.out.println("packet at index " + j + "\t" + p[j]);
+            //ystem.out.println("packet at index " + j + "\t" + p[j]);
             k++;
         }
         return getIPString(ip);
@@ -250,7 +247,30 @@ public class NewServer extends Thread {
     protected void updatePacket(byte[] n) {
         for (int i=1,k=0; i<5; i++) {
             constrPacket[i] = n[k++];
+            System.out.println("Packet updated with new IP");
         }
+    }
+
+    
+    /**************************************************************
+     * Method to forward packet on to the destination host.
+     *
+     * @param p
+     **************************************************************/
+    protected void fowardPacket(byte[] p) {
+
+        MulticastSocket socket = null;
+
+        try {
+            socket = new MulticastSocket(BCAST_PORT);
+            InetAddress group = InetAddress.getByName("230.0.0.1");
+            packet = new DatagramPacket(p, p.length, group, BCAST_PORT);
+            socket.send(packet);
+        } catch (IOException ioe) {
+            ioe.printStackTrace();
+        }
+        
+        socket.close();
     }
 
 
@@ -284,11 +304,11 @@ public class NewServer extends Thread {
      **************************************************************/
     private byte[] rtLookup(rt_entry n) {
         byte[] ip = null;
-        
+        System.out.println("Searching for ip....");
         for (int j=0;j<RoutingTable.size();j++) {
             if (n.getHost().equals(RoutingTable.get(j).getHost())) {
                 ip = RoutingTable.get(j).getIP();
-                System.out.println("Added entry to routing table");
+                System.out.println("Entry found in routing table");
             }
         }
         return ip;

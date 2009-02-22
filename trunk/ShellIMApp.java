@@ -120,6 +120,7 @@ public class ShellIMApp extends JFrame{
                 try {
                     System.out.println("sending message: " + input);
                     client.sendMSG(input);
+                    
                 } catch (IOException ioe) {
                     ioe.printStackTrace();
                 }
