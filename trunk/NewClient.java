@@ -40,17 +40,20 @@ public class NewClient {
      **************************************************************/
     protected void sendMSG(String s) throws IOException {
 
+        /* - no longer needed
         // Get a string representation of the local ip address
         for (int index=0; index<IP.length; index++) {
             if (index > 0) {
                 local_ip += ".";
             }
             local_ip += ((int)IP[index]) & 0xff;
-        }
+        } 		  
         //strip of the stupid null that keeps showing up for some reason
         local_ip = local_ip.substring(4);
+		  */
 
-        System.out.println("My local IP address is: " + local_ip);
+        System.out.println("My local IP address is: " + address.getHostAddress());
+		  System.out.println("My local machine name is: " + host);
 
         byte f = 0;
         IP[0] = 1;
