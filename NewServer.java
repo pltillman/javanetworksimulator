@@ -18,6 +18,7 @@ public class NewServer extends Thread {
     protected InetAddress address;
     protected byte[] IP;
     protected String local_ip;
+    protected String host;
 
 
     public static void main(String[] args) throws IOException {
@@ -42,7 +43,7 @@ public class NewServer extends Thread {
         
         address = InetAddress.getLocalHost();
         IP = address.getAddress();
-
+        host = address.getHostName();
     }
 
     /**************************************************************
@@ -70,7 +71,8 @@ public class NewServer extends Thread {
             }
 
             byte[] rcvdPacket = packet.getData();
-
+            System.out.println("Packet received...");
+            
             rt_entry target = new rt_entry(rcvdPacket, extractIP(rcvdPacket));
             byte[] br = rtLookup(target);
 
@@ -79,7 +81,19 @@ public class NewServer extends Thread {
                 case 0:
                     if (br != null) {
                         System.out.println("rt lookup flag bit detected");
-                        updatePacket(br);
+                        byte [] yum = updatePacket(rcvdPacket, br);
+                        
+                        try {
+                            MulticastSocket socket = new MulticastSocket(BCAST_PORT);
+                            InetAddress group = InetAddress.getByName("230.0.0.1");
+                            byte f = 1;
+                            //byte[] msg = makePacket(f, host, IP, "Test");
+                            packet = new DatagramPacket(rcvdPacket, rcvdPacket.length, group, BCAST_PORT);
+                            socket.send(packet);
+                        } catch (IOException ioe) {
+                            ioe.printStackTrace();
+                        }
+
                     } else {
                         System.out.println("IP is not registered");
                         RoutingTable.add(target);
@@ -157,7 +171,6 @@ public class NewServer extends Thread {
     }
 
 
-
     /**************************************************************
      * Method to create a structured packet.
      *
@@ -168,22 +181,26 @@ public class NewServer extends Thread {
      * @return - a byte[] array that will be sent as a datagram packet
      *************************************************************/
 
-    protected byte[] makePacket(byte f, String host, byte[] ip, String message) {
+    protected byte[] makePacket(byte f, String host, byte[] ip, String message, int l) {
 
         constrPacket = new byte[256];
         constrPacket[0] = f;
         byte[] b = message.getBytes();
+
         byte[] h = host.getBytes();
 
         for (int y=1,k=0; y<5; y++) {
             constrPacket[y] = ip[k++];
         }
         if (h.length < 33 && b.length < 256) {
-            for (int j=5, l=0; j<h.length; j++) {
-                constrPacket[j] = h[l++];
+            for (int j=5, u=0; j<h.length; j++) {
+                constrPacket[j] = h[u++];
             }
-
-            for (int p=33,w=0; w<b.length; p++) {
+            if (l < 128)
+                constrPacket[33] = (byte)(l);
+            else
+                System.out.println("too much text to store");
+            for (int p=34,w=0; w<b.length; p++) {
                 constrPacket[p] = b[w++];
             }
         }
@@ -234,7 +251,8 @@ public class NewServer extends Thread {
      * @return - String represenation of the embedded message to be sent
      **************************************************************/
     protected String extractMSG(byte[] p) {
-        String msg = new String(p,33,222);
+        String msg = new String(p,34,p[33]);
+        //System.out.println(msg);
         return msg;
     }
 
@@ -244,11 +262,12 @@ public class NewServer extends Thread {
      *
      * @param n - The recevied packet.
      **************************************************************/
-    protected void updatePacket(byte[] n) {
+    protected byte[] updatePacket(byte[] n, byte[] o) {
         for (int i=1,k=0; i<5; i++) {
-            constrPacket[i] = n[k++];
-            System.out.println("Packet updated with new IP");
+            n[i] = o[k++];
         }
+        System.out.println("Packet updated with new IP");
+        return n;
     }
 
     
