@@ -36,39 +36,11 @@ public class NewClient {
      * @param s
      * @throws java.io.IOException
      **************************************************************/
-    protected void sendMSG(String s) throws IOException {
-//        // Get a string representation of the local ip address
-//        for (int index=0; index<IP.length; index++) {
-//            if (index > 0) {
-//                local_ip += ".";
-//            }
-//            local_ip += ((int)IP[index]) & 0xff;
-//        }
-//        //strip of the stupid null that keeps showing up for some reason
-//        local_ip = local_ip.substring(4);
-//        System.out.println("My local IP address is: " + local_ip);
+    protected void sendMSG(String h, String s, int l) throws IOException {
 
-<<<<<<< .mine
-=======
-        /* - no longer needed
-        // Get a string representation of the local ip address
-        for (int index=0; index<IP.length; index++) {
-            if (index > 0) {
-                local_ip += ".";
-            }
-            local_ip += ((int)IP[index]) & 0xff;
-        } 		  
-        //strip of the stupid null that keeps showing up for some reason
-        local_ip = local_ip.substring(4);
-		  */
-
-        System.out.println("My local IP address is: " + address.getHostAddress());
-		  System.out.println("My local machine name is: " + host);
-
->>>>>>> .r38
         byte f = 0;
-        System.out.println("client is sending message: " + s);
-        message = makePacket(f,host,IP,s);
+        String text = "\n" + h + ": " + s;
+        message = makePacket(f,host,IP,text,l);
         packet = new DatagramPacket(message, message.length, address, SERVER_PORT);
 
         try {
@@ -98,7 +70,7 @@ public class NewClient {
         MulticastSocket socket = new MulticastSocket(BCAST_PORT);
         InetAddress group = InetAddress.getByName("230.0.0.1");
         byte f = 1;
-        msg = makePacket(f, host, IP, "Test");
+        msg = makePacket(f, host, IP, "", 0);
 
         packet = new DatagramPacket(msg, msg.length, group, BCAST_PORT);
 
@@ -119,7 +91,7 @@ public class NewClient {
      * @param message
      * @return
      **************************************************************/
-    protected byte[] makePacket(byte f, String host, byte[] ip, String message) {
+    protected byte[] makePacket(byte f, String host, byte[] ip, String message, int l) {
         //constrPacket = null;
         constrPacket = new byte[256];
         constrPacket[0] = f;
@@ -128,20 +100,17 @@ public class NewClient {
 
         for (int y=1,k=0; y<5; y++) {
             constrPacket[y] = ip[k++];
-            //System.out.println("IP encoded into packet...");
-            //k++;
         }
         if (h.length < 33 && b.length < 256) {
-            for (int j=5, l=0; j<h.length; j++) {
-                constrPacket[j] = h[l++];
-                //System.out.println("Host encoded into packet...");
-                //l++;
+            for (int j=5, u=0; j<h.length; j++) {
+                constrPacket[j] = h[u++];
             }
-            
-            for (int p=33,w=0; w<b.length; p++) {
+            if (l < 128)
+                constrPacket[33] = (byte)(l);
+            else
+                System.out.println("too much text to store");
+            for (int p=34,w=0; w<b.length; p++) {
                 constrPacket[p] = b[w++];
-                //System.out.println("Message encoded into packet...");
-                //w++;
             }
         }
 

@@ -5,6 +5,8 @@ import java.awt.Toolkit;
 import javax.swing.*;
 import java.awt.event.*;
 import java.io.*;
+import java.net.*;
+//import java.lang.Thread;
 
 /**
  * Created by Brandon Parker, Patrick Tillman, and Ryan Spencer
@@ -15,28 +17,62 @@ public class ShellIMApp extends JFrame{
     private String input = "", output = "";
     private JButton postText, convoExport;
     private JLabel commandLabel, buffer;
-    private JTextArea inputText, outputText;
+    public static JTextArea inputText, outputText;
     private JScrollPane scrollPaneoutputText, scrollPaneInputText;
     private JPanel panel, panel2, panel3;
     private Font font;
     private Image redIcon, greenIcon;
     private NewClient client;
+    protected DatagramSocket serv_socket = null;
+    protected final int DEFAULT_PORT = 4459;
+    protected DatagramPacket packet = null;
+    protected Thread t;
+    protected NewClientThread clientListener;
+    protected String handle;
 
     public ShellIMApp() throws IOException {
+
+        handle = JOptionPane.showInputDialog( "What is your first name?" );
+        
         initComponents();
         client = new NewClient();
         client.broadCastIP();
+        //listen();
+        t = new Thread(new NewClientThread());
+        t.start();
+       
         
     }
 
+    protected void listen() {
+        try {
+            serv_socket = new DatagramSocket(DEFAULT_PORT);
+        } catch (IOException ioe) {
+            ioe.printStackTrace();
+        }
+
+        while (!serv_socket.isClosed()) {
+
+            byte[] message = new byte[256];
+
+            packet = new DatagramPacket(message, message.length);
+
+            try {
+                serv_socket.receive(packet);
+            } catch (IOException ioe) {
+                ioe.printStackTrace();
+            }
+        }
+    }
     private void initComponents(){
 
         //set title
         setTitle("The Lobby");
         //set exit strategy
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-        redIcon = Toolkit.getDefaultToolkit().getImage("red circle.png");
+        redIcon = Toolkit.getDefaultToolkit().getImage("redcircle.png");
         setIconImage(redIcon);
+
 
 
         //Set Content Container (will add Panels later)
@@ -47,6 +83,7 @@ public class ShellIMApp extends JFrame{
         panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
         panel.setBorder(BorderFactory.createEmptyBorder(10, 100, 10, 10));
+        
 
         //Set up Output Text Area panel
         panel2 = new JPanel();
@@ -108,23 +145,29 @@ public class ShellIMApp extends JFrame{
     public class ButtonHandler implements ActionListener{
 
         public void actionPerformed(ActionEvent ae){
+
             input = inputText.getText();
+            System.out.println("input: " + input.length());
             output = outputText.getText();
-            if(ae.getSource() == postText){ //Conditional that sends text in Input Text Area and places it in Output Text Area
+            if(ae.getSource() == postText && input.length() > 0){ //Conditional that sends text in Input Text Area and places it in Output Text Area
                 inputText.setText(null);    //Deletes text in Input Text Area
-                outputText.append("user1: " + input + "\n\n");  //Adds text to Output Text Area
-                greenIcon = Toolkit.getDefaultToolkit().getImage("green circle.png");   //This is to show you that the image icon will turn from red to green
+                //outputText.append("user1: " + input + "\n\n");  //Adds text to Output Text Area
+                greenIcon = Toolkit.getDefaultToolkit().getImage("greencircle.png");   //This is to show you that the image icon will turn from red to green
                                                                                         //when connected (upon action listener) to a network....This command
                                                                                         //will be moved to the subscribe to network method to come later
                 setIconImage(greenIcon);    //green light will appear in place of red one on title bar
+
                 try {
                     System.out.println("sending message: " + input);
-                    client.sendMSG(input);
-                    
+                    client.sendMSG(handle, input, (input.length()+handle.length()+3));
                 } catch (IOException ioe) {
                     ioe.printStackTrace();
                 }
             } //end if
+            else{
+                JOptionPane.showMessageDialog(null, "Try entering some Text!");
+
+            }
             if(ae.getSource() == convoExport){  //Conditional that sends text in Output Text Area to file (conversation.doc)
                 FileOutputStream out;
                 PrintStream p;
