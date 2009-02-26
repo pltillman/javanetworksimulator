@@ -37,33 +37,14 @@ public class ShellIMApp extends JFrame{
         initComponents();
         client = new NewClient();
         client.broadCastIP();
-        //listen();
+
         t = new Thread(new NewClientThread());
         t.start();
        
         
     }
 
-    protected void listen() {
-        try {
-            serv_socket = new DatagramSocket(DEFAULT_PORT);
-        } catch (IOException ioe) {
-            ioe.printStackTrace();
-        }
 
-        while (!serv_socket.isClosed()) {
-
-            byte[] message = new byte[256];
-
-            packet = new DatagramPacket(message, message.length);
-
-            try {
-                serv_socket.receive(packet);
-            } catch (IOException ioe) {
-                ioe.printStackTrace();
-            }
-        }
-    }
     private void initComponents(){
 
         //set title
