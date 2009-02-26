@@ -26,7 +26,7 @@ public class NewClientThread implements Runnable {
         MulticastSocket bsocket = null;
 
         try {
-            b_address = InetAddress.getByName("230.0.0.1");
+            b_address = InetAddress.getByName("224.0.0.1");
             bsocket = new MulticastSocket(BCAST_PORT);
             bsocket.joinGroup(b_address);
 
