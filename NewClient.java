@@ -27,8 +27,6 @@ public class NewClient {
         message = new byte[256];
         address = InetAddress.getLocalHost();
         IP = address.getAddress();
-        //System.out.println(address.getHostAddress());
-        //System.out.println(IP[0] + "." + IP[1] & 0xff + "." + IP[2] + "." + IP[3]);
         host = address.getHostName();
 
     }
@@ -50,6 +48,7 @@ public class NewClient {
             //client_socket.setSoTimeout(expiration);
             client_socket.send(packet);
             System.out.println("message sent successfully");
+				client_socket.close();
 
         } catch (SocketException se) {
             se.printStackTrace();
@@ -70,45 +69,18 @@ public class NewClient {
 
         byte[] msg = new byte[256];
         MulticastSocket socket = new MulticastSocket(BCAST_PORT);
-        DatagramSocket receiver = null;
-
-        InetAddress group = InetAddress.getByName("224.0.0.1");
+        InetAddress group = InetAddress.getByName("224.0.0.251");
         byte f = 1;
         msg = makePacket(f, host, IP, "", 0);
 
         packet = new DatagramPacket(msg, msg.length, group, BCAST_PORT);
 
-        byte[] serverIP = new byte[4];
-        
-        DatagramPacket pack = new DatagramPacket(serverIP, serverIP.length);
-
-        Boolean added = false;
-        while (!added) {
-            try {
-                socket.send(packet);
-                receiver = new DatagramSocket(DEFAULT_PORT);
-                receiver.receive(pack);
-                socket.close();
-                System.out.println("Broadcast socket closed");
-
-
-                address = pack.getAddress();
-                IP = address.getAddress();
-                host = address.getHostName();
-                added = true;
-
-
-            } catch (IOException ioe) {
-                ioe.printStackTrace();
-            }
-//
-//            try {
-//
-//            } catch (IOException ioe) {
-//                ioe.printStackTrace();
-//            }
+        try {
+            socket.send(packet);
+        } catch (IOException ioe) {
+            ioe.printStackTrace();
         }
-        
+
         socket.close();
     }
 
