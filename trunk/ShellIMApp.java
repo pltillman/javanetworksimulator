@@ -14,17 +14,23 @@ import java.net.*;
 public class ShellIMApp extends JFrame{
 
     private Container contents;
+	 private final JFileChooser fileChooser = new JFileChooser();
     private String input = "", output = "";
-    private JButton postText, convoExport;
-    private JLabel commandLabel, buffer;
+    private JButton postText, convoExport, upload, icon;
+	 private Image image;
+    private JLabel commandLabel;
+	 private Icon smiley, word, fileUp, postIt;
     public static JTextArea inputText, outputText;
+	 public static int msgLen = 0, counter = 0;
     private JScrollPane scrollPaneoutputText, scrollPaneInputText;
     private JPanel panel, panel2, panel3;
     private Font font;
-    private Image redIcon, greenIcon;
+    private Image titleBarIcon;
     private NewClient client;
     protected DatagramSocket serv_socket = null;
     protected final int DEFAULT_PORT = 4459;
+	 protected int returnVal;
+	 protected static float avgMsgLen;
     protected DatagramPacket packet = null;
     protected Thread t;
     protected NewClientThread clientListener;
@@ -37,34 +43,54 @@ public class ShellIMApp extends JFrame{
         initComponents();
         client = new NewClient();
         client.broadCastIP();
-
+        //listen();
         t = new Thread(new NewClientThread());
         t.start();
        
         
     }
 
+    protected void listen() {
+        try {
+            serv_socket = new DatagramSocket(DEFAULT_PORT);
+        } catch (IOException ioe) {
+            ioe.printStackTrace();
+        }
 
+        while (!serv_socket.isClosed()) {
+
+            byte[] message = new byte[256];
+
+            packet = new DatagramPacket(message, message.length);
+
+            try {
+                serv_socket.receive(packet);
+            } catch (IOException ioe) {
+                ioe.printStackTrace();
+            }
+        }
+    }
     private void initComponents(){
 
-        //set title
-        setTitle("The Lobby");
-        //set exit strategy
+        //set Basics
+        setTitle("The Lobby"); //Title on Title Bar
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-        redIcon = Toolkit.getDefaultToolkit().getImage("redcircle.png");
-        setIconImage(redIcon);
-
-
-
+        titleBarIcon = Toolkit.getDefaultToolkit().getImage("speech_bubble.png");
+        setIconImage(titleBarIcon);
+		  
         //Set Content Container (will add Panels later)
         contents = getContentPane();
         contents.setLayout(new BorderLayout());
+		  ButtonHandler bh = new ButtonHandler();   //Create Button Handler for button
+		  
+		  //Retrieve Icons for buttons
+		  postIt = new ImageIcon("postItKeyed.png");
+		  word = new ImageIcon("wordkeyed.png");
+		  fileUp = new ImageIcon("filekeyed.png");
+		  smiley = new ImageIcon("smileykeyed.png");
    
         //Set up Button panel
-        panel = new JPanel();
-        panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
-        panel.setBorder(BorderFactory.createEmptyBorder(10, 100, 10, 10));
-        
+        panel = new JPanel();      
 
         //Set up Output Text Area panel
         panel2 = new JPanel();
@@ -75,21 +101,38 @@ public class ShellIMApp extends JFrame{
         panel3 = new JPanel();
         panel3.setLayout (new BoxLayout(panel3, BoxLayout.X_AXIS));
         panel3.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-
-        //Create Button to send message
-        postText = new JButton("Send Message");
-        ButtonHandler bh = new ButtonHandler();   //Create Button Handler for button
-        postText.addActionListener(bh);   //add action lister for button press
-        panel.add(postText);    //add button to Button panel (created earlier)
-
-        //Create Buffer Label between Buttons (to separate buttons)
-        buffer = new JLabel(" ");
-        panel.add(buffer);
-
+  
+		  //Create Button for Sending Icons
+		  icon = new JButton(); //Icons
+		  icon.setPreferredSize(new Dimension(80, 50));
+		  icon.setIcon(smiley);
+		  icon.setToolTipText("Send Icon");
+		  icon.addActionListener(bh);
+		  panel.add(icon);
+		  
+		  //Create Button for Uploading a file
+		  upload = new JButton(); //Upload
+		  upload.setPreferredSize(new Dimension(80, 50));
+		  upload.setIcon(fileUp);
+		  upload.setToolTipText("Send a File");
+		  upload.addActionListener(bh);
+		  panel.add(upload);
+		  
         //Create Button to export conversation to file (conversation.doc)
-        convoExport = new JButton("Export Session");
+        convoExport = new JButton(); //Export
+		  convoExport.setPreferredSize(new Dimension(80, 50));
+		  convoExport.setIcon(word);
+		  convoExport.setToolTipText("Export Session to Word Document");
         convoExport.addActionListener(bh);
         panel.add(convoExport);
+		  
+		  //Create Button to send message
+        postText = new JButton(); //POST
+		  postText.setPreferredSize(new Dimension(80, 50));
+		  postText.setIcon(postIt);
+		  postText.setToolTipText("Post Message");
+        postText.addActionListener(bh);   //add action lister for button press
+        panel.add(postText);    //add button to Button panel (created earlier)	  
 
         //Create Output Text Area
         outputText = new JTextArea(20, 20);
@@ -117,6 +160,14 @@ public class ShellIMApp extends JFrame{
         contents.add(panel, BorderLayout.SOUTH);
         contents.add(panel2, BorderLayout.NORTH);
         contents.add(panel3, BorderLayout.CENTER);
+		  
+		  //Set Focus on Input JTextArea upon Window Launch
+		  addWindowListener( new WindowAdapter() {
+    	  		public void windowOpened( WindowEvent e ){
+        			inputText.requestFocus();
+      		}
+    	  } ); 
+
 
         pack();
     } //End initComponents
@@ -127,17 +178,11 @@ public class ShellIMApp extends JFrame{
 
         public void actionPerformed(ActionEvent ae){
 
-            input = inputText.getText();
+            input = inputText.getText();										
             System.out.println("input: " + input.length());
-            output = outputText.getText();
+            output = outputText.getText();	
             if(ae.getSource() == postText && input.length() > 0){ //Conditional that sends text in Input Text Area and places it in Output Text Area
                 inputText.setText(null);    //Deletes text in Input Text Area
-                //outputText.append("user1: " + input + "\n\n");  //Adds text to Output Text Area
-                greenIcon = Toolkit.getDefaultToolkit().getImage("greencircle.png");   //This is to show you that the image icon will turn from red to green
-                                                                                        //when connected (upon action listener) to a network....This command
-                                                                                        //will be moved to the subscribe to network method to come later
-                setIconImage(greenIcon);    //green light will appear in place of red one on title bar
-
                 try {
                     System.out.println("sending message: " + input);
                     client.sendMSG(handle, input, (input.length()+handle.length()+3));
@@ -145,9 +190,8 @@ public class ShellIMApp extends JFrame{
                     ioe.printStackTrace();
                 }
             } //end if
-            else{
+            if(ae.getSource() == postText && input.length() <= 0){
                 JOptionPane.showMessageDialog(null, "Try entering some Text!");
-
             }
             if(ae.getSource() == convoExport){  //Conditional that sends text in Output Text Area to file (conversation.doc)
                 FileOutputStream out;
@@ -161,8 +205,17 @@ public class ShellIMApp extends JFrame{
                 }catch(Exception e){
                     System.err.println("Error:  Could not print to file");
                 } //End Try Catch
-                outputText.append("**Session Saved (sent to Conversation.doc)**\n\n");
+                outputText.append("\n\n**Session Saved (sent to Conversation.doc)**\n");	
             }//End if
+				if(ae.getSource() == upload){	 //Conditional that Uploads file
+					returnVal = fileChooser.showOpenDialog(ShellIMApp.this);
+					if(returnVal == JFileChooser.APPROVE_OPTION){
+						File file = fileChooser.getSelectedFile();
+					} //End inner If
+				} //End If
+				if(ae.getSource() == icon){
+					image = Toolkit.getDefaultToolkit().getImage("smiley1.png");
+				} //End If
         } //End ActionPerformed
     } //End Button Handler
 
@@ -176,7 +229,7 @@ public class ShellIMApp extends JFrame{
                 ioe.printStackTrace();
             }
         }
-        });
+     });
     }//End Main
 
 } //End class ShellIMApp

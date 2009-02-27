@@ -1,7 +1,7 @@
 import java.net.*;
 import java.io.*;
 import java.util.ArrayList;
-import java.lang.Thread;
+
 
 /**************************************************************
  *
@@ -14,20 +14,17 @@ public class NewServer extends Thread {
     protected final int DEFAULT_PORT = 4449, BCAST_PORT = 7872;
     protected final int expiration = 2000, THREE_SECONDS = 3000;
     protected byte[] constrPacket = new byte[256];
-    public static ArrayList<rt_entry> RoutingTable = new ArrayList<rt_entry>();
+    private static ArrayList<rt_entry> RoutingTable = new ArrayList<rt_entry>();
     protected InetAddress address;
     protected byte[] IP;
     protected String local_ip;
     protected String host;
-    protected Thread t;
-	
-
+	 protected int c;
 
 
     public static void main(String[] args) throws IOException {
 
         new NewServer("s1").start();
-
     }
 
 
@@ -40,11 +37,10 @@ public class NewServer extends Thread {
     public NewServer(String n) throws IOException {
 
         super(n);
+			c=0;
+        listen_BCAST();
         
-        t = new Thread(new NewServerThread());
-        t.start();
-        
-
+		  System.out.println("broadcasting done...");
         listen();
         
         address = InetAddress.getLocalHost();
@@ -88,12 +84,12 @@ public class NewServer extends Thread {
                 case 0:
                     if (true) {
                         System.out.println("rt lookup flag bit detected");
-                        //byte [] yum = updatePacket(rcvdPacket, br);
+                        byte [] yum = updatePacket(rcvdPacket, br);
                         
                         try {
                             MulticastSocket socket = new MulticastSocket(BCAST_PORT);
-                            InetAddress group = InetAddress.getByName("224.0.0.1");
-                            //byte f = 1;
+                            InetAddress group = InetAddress.getByName("224.0.0.251");
+                            byte f = 1;
                             //byte[] msg = makePacket(f, host, IP, "Test");
                             packet = new DatagramPacket(rcvdPacket, rcvdPacket.length, group, BCAST_PORT);
                             socket.send(packet);
@@ -128,7 +124,54 @@ public class NewServer extends Thread {
     }
 
 
+    /**************************************************************
+     * Method that instructs the Server to listent for any incoming
+     * broadcasts. These broadcasts will extract the pertinent data
+     * and update the Routing Table accordingly.
+     *
+     * @throws java.io.IOException
+     **************************************************************/
+    protected void listen_BCAST() throws IOException {
 
+        //Boolean added = false;
+        InetAddress b_address = null;
+        MulticastSocket bsocket = null;
+
+        b_address = InetAddress.getByName("224.0.0.251");
+        bsocket = new MulticastSocket(BCAST_PORT);
+        bsocket.joinGroup(b_address);
+
+        while (!bsocket.isClosed()) {
+				
+            // Create an emtpy packet and call to recieve
+            byte[] msg = new byte[256];
+            packet = new DatagramPacket(msg, msg.length);
+            bsocket.receive(packet);
+				c++;
+            msg = packet.getData();
+            rt_entry target = new rt_entry(msg, extractIP(msg));
+            byte[] br = rtLookup(target);
+            // Convert the byte[] to String and print it
+            
+            System.out.println("Received message: " + msg[0] + " \t" 
+                    + extractDestHost(msg) + " \t IP " + extractIP(msg)
+                    + "\tMSG: " + extractMSG(msg));
+
+            // Check the message for a broadcast call
+            if (msg[0] == 1 && br == null || c==2) {
+                System.out.println("Closing broadcast socket...");
+                bsocket.leaveGroup(b_address);
+                bsocket.close();
+                RoutingTable.add(target);
+                System.out.println("Entry added to routing table");
+            //setup a new socket and send ip back to the server
+            //add code here
+            } else {
+                System.out.println("Flag bit = " + msg[0] + " and " + br);
+            }
+
+        }
+    }
 
 
     /**************************************************************
@@ -212,6 +255,9 @@ public class NewServer extends Thread {
      **************************************************************/
     protected String extractMSG(byte[] p) {
         String msg = new String(p,34,p[33]);
+		  ShellIMApp.msgLen += msg.length();
+		  ShellIMApp.counter++;
+		  System.out.println("msgLen: " + ShellIMApp.msgLen + "\tcounter: " + ShellIMApp.counter);
         //System.out.println(msg);
         return msg;
     }
@@ -242,7 +288,7 @@ public class NewServer extends Thread {
 
         try {
             socket = new MulticastSocket(BCAST_PORT);
-            InetAddress group = InetAddress.getByName("224.0.0.1");
+            InetAddress group = InetAddress.getByName("224.0.0.251");
             packet = new DatagramPacket(p, p.length, group, BCAST_PORT);
             socket.send(packet);
         } catch (IOException ioe) {
@@ -313,5 +359,26 @@ public class NewServer extends Thread {
 
 
 
+    /**************************************************************
+     * Class to create a Routing Table object.
+     **************************************************************/
+    class rt_entry {
 
+        protected byte[] ip;
+        protected String destHost;
+
+        public rt_entry(byte[] i, String h) {
+            this.ip = i;
+            this.destHost = h;
+        }
+
+        public byte[] getIP() {
+            return this.ip;
+        }
+        public String getHost() {
+            return this.destHost;
+        }
+        
+        
+    }
 }
