@@ -55,6 +55,29 @@ public class NewClient {
         }
     }
 
+    protected void sendFILE(File f) throws IOException {
+
+        ServerSocket servsock = new ServerSocket(SERVER_PORT+1);
+
+        while (true) {
+            System.out.println("Waiting...");
+
+            Socket sock = servsock.accept();
+            System.out.println("Accepted connection : " + sock);
+
+            // sendfile
+            File myFile = f;
+            byte [] mybytearray  = new byte [(int)myFile.length()];
+            FileInputStream fis = new FileInputStream(myFile);
+            BufferedInputStream bis = new BufferedInputStream(fis);
+            bis.read(mybytearray,0,mybytearray.length);
+            OutputStream os = sock.getOutputStream();
+            System.out.println("Sending...");
+            os.write(mybytearray,0,mybytearray.length);
+            os.flush();
+            sock.close();
+        }
+    }
 
     protected String rcvMSG() {
         String response = null;
@@ -69,20 +92,48 @@ public class NewClient {
 
         byte[] msg = new byte[256];
         MulticastSocket socket = new MulticastSocket(BCAST_PORT);
-        InetAddress group = InetAddress.getByName("224.0.0.251");
+        DatagramSocket receiver = null;
+
+        InetAddress group = InetAddress.getByName("224.0.0.1");
         byte f = 1;
         msg = makePacket(f, host, IP, "", 0);
 
         packet = new DatagramPacket(msg, msg.length, group, BCAST_PORT);
 
-        try {
-            socket.send(packet);
-        } catch (IOException ioe) {
-            ioe.printStackTrace();
+        byte[] serverIP = new byte[4];
+
+        DatagramPacket pack = new DatagramPacket(serverIP, serverIP.length);
+
+        Boolean added = false;
+        while (!added) {
+            try {
+                socket.send(packet);
+                receiver = new DatagramSocket(DEFAULT_PORT);
+                receiver.receive(pack);
+                socket.close();
+                System.out.println("Broadcast socket closed");
+
+
+                address = pack.getAddress();
+                IP = address.getAddress();
+                host = address.getHostName();
+                added = true;
+
+
+            } catch (IOException ioe) {
+                ioe.printStackTrace();
+            }
+//
+//            try {
+//
+//            } catch (IOException ioe) {
+//                ioe.printStackTrace();
+//            }
         }
 
         socket.close();
     }
+
 
     /**************************************************************
      *
