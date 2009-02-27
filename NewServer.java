@@ -14,7 +14,7 @@ public class NewServer extends Thread {
     protected final int DEFAULT_PORT = 4449, BCAST_PORT = 7872;
     protected final int expiration = 2000, THREE_SECONDS = 3000;
     protected byte[] constrPacket = new byte[256];
-    private static ArrayList<rt_entry> RoutingTable = new ArrayList<rt_entry>();
+    public static ArrayList<rt_entry> RoutingTable = new ArrayList<rt_entry>();
     protected InetAddress address;
     protected byte[] IP;
     protected String local_ip;
@@ -357,28 +357,4 @@ public class NewServer extends Thread {
         return ipStr;
     }
 
-
-
-    /**************************************************************
-     * Class to create a Routing Table object.
-     **************************************************************/
-    class rt_entry {
-
-        protected byte[] ip;
-        protected String destHost;
-
-        public rt_entry(byte[] i, String h) {
-            this.ip = i;
-            this.destHost = h;
-        }
-
-        public byte[] getIP() {
-            return this.ip;
-        }
-        public String getHost() {
-            return this.destHost;
-        }
-        
-        
-    }
 }
