@@ -216,6 +216,7 @@ public class ShellIMApp extends JFrame{
 				if(ae.getSource() == icon){
 					image = Toolkit.getDefaultToolkit().getImage("smiley1.png");
 				} //End If
+				inputText.requestFocus();
         } //End ActionPerformed
     } //End Button Handler
 
