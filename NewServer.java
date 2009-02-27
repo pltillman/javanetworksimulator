@@ -212,6 +212,10 @@ public class NewServer extends Thread {
     protected String extractMSG(byte[] p) {
         String msg = new String(p,34,p[33]);
         //System.out.println(msg);
+        ShellIMApp.msgLen += msg.length();
+        ShellIMApp.counter++;
+
+        System.out.println("msgLen: " + ShellIMApp.msgLen + "\tcounter: " + ShellIMApp.counter);
         return msg;
     }
 
