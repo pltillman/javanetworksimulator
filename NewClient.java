@@ -1,6 +1,6 @@
-
 import java.net.*;
 import java.io.*;
+import java.util.ArrayList;
 
 public class NewClient {
 
@@ -16,7 +16,8 @@ public class NewClient {
     protected String local_ip;
     protected byte[] constrPacket = new byte[256];
     protected String host;
-
+	 protected ArrayList<Long> trans_time = new ArrayList<Long>();
+	 protected ArrayList<Integer> msg_size = new ArrayList<Integer>();
 
     public static void main(String[] args) throws IOException {
         new NewClient();
@@ -38,22 +39,44 @@ public class NewClient {
      **************************************************************/
     protected void sendMSG(String h, String s, int l) throws IOException {
 
-        byte f = 0;
+        long start = System.currentTimeMillis();    
+		  byte f = 0;
         String text = "\n" + h + ": " + s;
         message = makePacket(f,host,IP,text,l);
         packet = new DatagramPacket(message, message.length, address, SERVER_PORT);
+		  msg_size.add(new Integer(text.length()));
+		  int msg_total = 0;
+		  for (int i=0; i<msg_size.size(); i++)
+						  		msg_total += msg_size.get(i); 
+		  int msg_avg = (msg_total / msg_size.size());
+		  System.out.println("Average message size: " + msg_avg + " characters");						
+		  
 
         try {
             client_socket = new DatagramSocket();
             //client_socket.setSoTimeout(expiration);
             client_socket.send(packet);
-            System.out.println("message sent successfully");
+			   System.out.println("message sent successfully");  
 				client_socket.close();
+				
+				// Calcualte Transmission time
+				long end = System.currentTimeMillis();
+            long temp = end - start;
+            System.out.println("Transmission time: " + temp + "ms"); 
+				trans_time.add(new Long(temp));
+			   long total = 0;
+			   for (int i=0; i<trans_time.size(); i++)
+						  		total += trans_time.get(i); 
+				long size =(long)trans_time.size();
+				long rt_avg = total / size;		
+				System.out.println("Average transmission time: " + rt_avg + "ms");
+				
 
         } catch (SocketException se) {
             se.printStackTrace();
         }
-    }
+		  
+       } // end sendMsg
 
     protected void sendFILE(File f) throws IOException {
 

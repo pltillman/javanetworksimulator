@@ -16,10 +16,10 @@ public class ShellIMApp extends JFrame{
     private Container contents;
 	 private final JFileChooser fileChooser = new JFileChooser();
     private String input = "", output = "";
-    private JButton postText, convoExport, upload, icon;
+    private JButton postText, convoExport, upload, icon, wink, goofy, happy, sad;
 	 private Image image;
     private JLabel commandLabel;
-	 private Icon smiley, word, fileUp, postIt;
+	 private Icon smiley, word, fileUp, postIt, happyFace, winkFace, goofyFace, sadFace;
     public static JTextArea inputText, outputText;
 	 public static int msgLen = 0, counter = 0;
     private JScrollPane scrollPaneoutputText, scrollPaneInputText;
@@ -35,6 +35,7 @@ public class ShellIMApp extends JFrame{
     protected Thread t;
     protected NewClientThread clientListener;
     protected String handle;
+	 private ButtonHandler bh = new ButtonHandler();   //Create Button Handler for button
 
     public ShellIMApp() throws IOException {
 
@@ -70,6 +71,60 @@ public class ShellIMApp extends JFrame{
             }
         }
     }
+	 protected void IconDialog()
+	 {
+	 		//Instantiate Components
+	 		JFrame J = new JFrame("ChooseIcon");
+			JPanel p = new JPanel();
+			JLabel l = new JLabel("Pick your icon");
+			J.setPreferredSize(new Dimension(200, 200));
+			J.setLocation(600, 600);
+	 		Container iconCont;
+			iconCont = J.getContentPane();
+		   Image iconTitleBarIcon = Toolkit.getDefaultToolkit().getImage("speech_bubble.png");
+		   J.setIconImage(iconTitleBarIcon);
+			
+			//Create Icons
+			winkFace = new ImageIcon("winkFace.jpg");
+			goofyFace = new ImageIcon("goofyFace.jpg");
+			sadFace = new ImageIcon("sadFace.jpg");
+			happyFace = new ImageIcon("happyFace.jpg");
+			
+			//Add buttons
+			wink = new JButton();
+			wink.setPreferredSize(new Dimension(80, 50));
+			wink.setIcon(winkFace);
+			wink.setBackground(Color.WHITE);
+			wink.setToolTipText("Send Winking Face");
+			wink.addActionListener(bh);
+			happy = new JButton();
+			happy.setPreferredSize(new Dimension(80, 50));
+			happy.setIcon(happyFace);
+			happy.setBackground(Color.WHITE);
+			happy.setToolTipText("Send Happy Face");
+			happy.addActionListener(bh);
+			sad = new JButton();
+			sad.setPreferredSize(new Dimension(80, 50));
+			sad.setIcon(sadFace);
+			sad.setBackground(Color.WHITE);
+			sad.setToolTipText("Send Sad Face");
+			sad.addActionListener(bh);
+			goofy = new JButton();
+			goofy.setPreferredSize(new Dimension(80, 50));
+			goofy.setIcon(goofyFace);
+			goofy.setBackground(Color.WHITE);
+			goofy.setToolTipText("Send Goofy Face");
+			goofy.addActionListener(bh);
+			p.add(wink);
+			p.add(happy);
+			p.add(sad);
+			p.add(goofy);
+			p.add(l);
+			iconCont.add(p);
+			J.setVisible(true);
+			J.pack();
+	 }
+	 
     private void initComponents(){
 
         //set Basics
@@ -81,7 +136,6 @@ public class ShellIMApp extends JFrame{
         //Set Content Container (will add Panels later)
         contents = getContentPane();
         contents.setLayout(new BorderLayout());
-		  ButtonHandler bh = new ButtonHandler();   //Create Button Handler for button
 		  
 		  //Retrieve Icons for buttons
 		  postIt = new ImageIcon("postItKeyed.png");
@@ -167,8 +221,7 @@ public class ShellIMApp extends JFrame{
         			inputText.requestFocus();
       		}
     	  } ); 
-
-
+		  
         pack();
     } //End initComponents
 
@@ -201,7 +254,7 @@ public class ShellIMApp extends JFrame{
                     p = new PrintStream(out);
                     p.println("Conversation Export:\n\n");
                     p.println(output);
-                    p.close();
+		              p.close();
                 }catch(Exception e){
                     System.err.println("Error:  Could not print to file");
                 } //End Try Catch
@@ -215,7 +268,40 @@ public class ShellIMApp extends JFrame{
 				} //End If
 				if(ae.getSource() == icon){
 					image = Toolkit.getDefaultToolkit().getImage("smiley1.png");
+					IconDialog();
 				} //End If
+				if(ae.getSource() == wink){ //Send winking icon
+					input = ";)";
+					try{
+                    client.sendMSG(handle, input, (input.length()+handle.length()+3));
+					}catch (IOException ioe) {
+						ioe.printStackTrace();
+					}
+				} //End if
+				if(ae.getSource() == happy){ //Send happy icon
+					input = ":)";
+					try{
+                    client.sendMSG(handle, input, (input.length()+handle.length()+3));
+					}catch (IOException ioe) {
+						ioe.printStackTrace();
+					}
+				} //End if
+				if(ae.getSource() == sad){ //Send sad icon
+					input = ":{";
+					try{
+                    client.sendMSG(handle, input, (input.length()+handle.length()+3));
+					}catch (IOException ioe) {
+						ioe.printStackTrace();
+					}
+				} //End if
+				if(ae.getSource() == goofy){ //Send goofy icon
+					input = ":p";
+					try{
+                    client.sendMSG(handle, input, (input.length()+handle.length()+3));
+					}catch (IOException ioe) {
+						ioe.printStackTrace();
+					}
+				} //End if
 				inputText.requestFocus();
         } //End ActionPerformed
     } //End Button Handler
