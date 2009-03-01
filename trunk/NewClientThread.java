@@ -1,6 +1,7 @@
-
 import java.net.*;
 import java.io.*;
+import java.awt.event.*;
+import java.awt.Toolkit;
 
 public class NewClientThread implements Runnable {
 
@@ -39,7 +40,9 @@ public class NewClientThread implements Runnable {
 
                 msg = packet.getData();
                 String strMessage = extractMSG(msg);
-                ShellIMApp.outputText.append(strMessage);
+            
+					 ShellIMApp.outputText.append(strMessage);
+
                 System.out.println("finished checking for packets....\n");
 
             }
@@ -82,3 +85,4 @@ public class NewClientThread implements Runnable {
 //    }
 
 }
+

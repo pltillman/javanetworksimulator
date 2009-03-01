@@ -37,6 +37,8 @@ public class NewServerThread implements Runnable {
 			ioe.printStackTrace();
 		}
 		
+		
+		
 	}
 	
     /**************************************************************

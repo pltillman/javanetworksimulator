@@ -20,6 +20,8 @@ public class NewServer extends Thread {
     protected String local_ip;
     protected String host;
     protected Thread t;
+	 protected ArrayList<Long> rtlookups = new ArrayList<Long>();
+	 
        
 
     public static void main(String[] args) throws IOException {
@@ -212,10 +214,6 @@ public class NewServer extends Thread {
     protected String extractMSG(byte[] p) {
         String msg = new String(p,34,p[33]);
         //System.out.println(msg);
-        ShellIMApp.msgLen += msg.length();
-        ShellIMApp.counter++;
-
-        System.out.println("msgLen: " + ShellIMApp.msgLen + "\tcounter: " + ShellIMApp.counter);
         return msg;
     }
 
@@ -287,10 +285,21 @@ public class NewServer extends Thread {
     private byte[] rtLookup(rt_entry n) {
         byte[] ip = null;
         System.out.println("Searching for ip....");
+		  long start = System.currentTimeMillis();
         for (int j=0;j<RoutingTable.size();j++) {
             if (n.getHost().equals(RoutingTable.get(j).getHost())) {
                 ip = RoutingTable.get(j).getIP();
                 System.out.println("Entry found in routing table");
+					 long end = System.currentTimeMillis();
+					 long temp = end - start;
+					 System.out.println("Time required for routing table lookup: " + temp + "ms");
+					 rtlookups.add(new Long(temp));
+					 long total = 0;
+					 for (int i=0; i<rtlookups.size(); i++)
+						  		total += rtlookups.get(i); 
+						  long size =(long)rtlookups.size();
+						  long rt_avg = total / size;		
+						  System.out.println("Average time required for routing table lookup: " + rt_avg + "ms");
             }
         }
         return ip;
