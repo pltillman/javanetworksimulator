@@ -16,7 +16,7 @@ public class NewClient {
     protected String local_ip;
     protected byte[] constrPacket = new byte[256];
     protected String host;
-	 protected ArrayList<Long> trans_time = new ArrayList<Long>();
+	 protected ArrayList<Double> trans_time = new ArrayList<Double>();
 	 protected ArrayList<Integer> msg_size = new ArrayList<Integer>();
 
     public static void main(String[] args) throws IOException {
@@ -39,7 +39,7 @@ public class NewClient {
      **************************************************************/
     protected void sendMSG(String h, String s, int l) throws IOException {
 
-        long start = System.currentTimeMillis();    
+        long start = System.nanoTime();    
 		  byte f = 0;
         String text = "\n" + h + ": " + s;
         message = makePacket(f,host,IP,text,l);
@@ -60,16 +60,16 @@ public class NewClient {
 				client_socket.close();
 				
 				// Calcualte Transmission time
-				long end = System.currentTimeMillis();
-            long temp = end - start;
-            System.out.println("Transmission time: " + temp + "ms"); 
-				trans_time.add(new Long(temp));
-			   long total = 0;
+				double end = System.nanoTime();
+            double temp = end - start;
+            System.out.println("Transmission time: " + temp + "ns"); 
+				trans_time.add(new Double(temp));
+			   double total = 0;
 			   for (int i=0; i<trans_time.size(); i++)
 						  		total += trans_time.get(i); 
-				long size =(long)trans_time.size();
-				long rt_avg = total / size;		
-				System.out.println("Average transmission time: " + rt_avg + "ms");
+				double size =(double)trans_time.size();
+				double rt_avg = total / size;		
+				System.out.println("Average transmission time: " + rt_avg + "ns");
 				
 
         } catch (SocketException se) {
