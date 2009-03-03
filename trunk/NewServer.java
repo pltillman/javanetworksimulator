@@ -1,7 +1,7 @@
 import java.net.*;
 import java.io.*;
 import java.util.ArrayList;
-import java.lang.Thread;
+
 
 /**************************************************************
  *
@@ -20,7 +20,7 @@ public class NewServer extends Thread {
     protected String local_ip;
     protected String host;
     protected Thread t;
-	 protected ArrayList<Long> rtlookups = new ArrayList<Long>();
+	protected ArrayList<Long> rtlookups = new ArrayList<Long>();
 	 
        
 
@@ -30,6 +30,22 @@ public class NewServer extends Thread {
 
     }
 
+
+    public void addRT_entries() {
+
+        byte[] tmpIP = null;
+        tmpIP[0] = 23;
+        tmpIP[1] = 127;
+        tmpIP[2] = 41;
+        rt_entry tmp;
+
+        for (int u=0; u<127; u++) {
+            tmpIP[3] = (byte)u;
+            tmp = new rt_entry(tmpIP, "client" + (127-u) + ".local");
+            RoutingTable.add(tmp);
+        }
+        
+    }
 
     /**************************************************************
      * Default constructor
@@ -44,7 +60,8 @@ public class NewServer extends Thread {
         t = new Thread(new NewServerThread());
         t.start();
        
-
+        addRT_entries();
+        
         listen();
        
         address = InetAddress.getLocalHost();
