@@ -50,6 +50,7 @@ public class CarSource2 {
 						temp.setServices(service);
 						registry.bind(("car " + i),temp);
 						CallbackServerInterface h = (CallbackServerInterface)registry.lookup("callback");
+						h.tellServerAboutCar(("car " + i));
 						Thread.sleep(timeInterval);
 					}
 				}
