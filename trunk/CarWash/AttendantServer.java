@@ -62,7 +62,6 @@ public class AttendantServer {
                     while (carType >= 0) {
                         if (washBusyStatus[carType]) {
                             h.sendCarToWash(carQ.poll());
-									 tmp.setExitTime(System.currentTimeMillis());
                         } else {
                             carType--;
                         }
@@ -110,8 +109,6 @@ public class AttendantServer {
     }
     public void addCar(String c) {
         carQ.add(c);
-		  Car temporary = (Car)Naming.lookup(c);
-		  temporary.setArrivalTime(System.currentTimeMillis()); 
     }
     public static void receiveCar(Car c) {
         
