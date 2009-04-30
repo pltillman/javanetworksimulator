@@ -6,7 +6,10 @@ import java.net.*;
 import java.io.*;
 import java.util.ArrayList;
 
-
+/**
+ *
+ * @author Patrick Tillman, Brandon Parker, Ryan Spencer
+ */
 public class AttendantServer {
     
     public static ArrayList<String> carQ;          // Array to hold all the car references
@@ -24,6 +27,7 @@ public class AttendantServer {
 
 
     /**
+     * Invokes the AttendantServer
      *
      * @param args
      * @throws java.rmi.RemoteException
@@ -34,7 +38,8 @@ public class AttendantServer {
 
 
     /**
-     * 
+     * Default constructor for AttendantServer
+     *
      * @throws java.rmi.RemoteException
      */
     public AttendantServer() throws RemoteException {
@@ -159,7 +164,12 @@ public class AttendantServer {
 
     }
 
-
+    /**
+     * Attempts to locate the registry and start it if necessary
+     *
+     * @param RMIPortNum - int - Represents RMI Server port number
+     * @throws java.rmi.RemoteException
+     */
     private static void startRegistry(int RMIPortNum) throws RemoteException {
         try {
             registry = LocateRegistry.getRegistry(RMIPortNum);
@@ -176,6 +186,13 @@ public class AttendantServer {
         }
     }
 
+    /**
+     * Used to list the objects registered in the RMI registry
+     *
+     * @param registryURL - String - RMI service reference
+     * @throws java.rmi.RemoteException
+     * @throws java.net.MalformedURLException
+     */
     private static void listRegistry(String registryURL) throws RemoteException, MalformedURLException {
         System.out.println("Registry " + registryURL + " contains: ");
         String[] names = Naming.list(registryURL);
@@ -183,11 +200,22 @@ public class AttendantServer {
             System.out.println(names[i]);
     }
 
+    /**
+     * Adds car object reference to the Car queue
+     *
+     * @param c - String - Car object reference
+     * @throws java.lang.Exception
+     */
     public void addCar(String c) throws Exception {
         carQ.add(c);
 		Car temporary = (Car)Naming.lookup(c);
         temporary.setArrivalTime(System.currentTimeMillis());
     }
+    /**
+     * Receives the car and binds it to the RMI registry
+     *
+     * @param s - String - Car object reference
+     */
     public static void receiveCar(Car s) {
         try {
             registry.rebind(carQ.remove(0), s);

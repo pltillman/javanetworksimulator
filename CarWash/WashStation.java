@@ -2,7 +2,10 @@ import java.rmi.registry.Registry;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.*;
 
-
+/**
+ *
+ * @author Patrick Tillman, Brandon Parker, Ryan Spencer
+ */
 public class WashStation {
 
     private int type;
@@ -14,6 +17,7 @@ public class WashStation {
     private GUIInterface gui;
 
     /**
+     * Used to invoke the WashStation program
      *
      * @param args
      * @throws java.rmi.RemoteException
@@ -25,9 +29,9 @@ public class WashStation {
     }
 
     /**
+     * Default constructor for the Wash Station
      *
-     * @param id
-     * @param t
+     * @param i - int - Sets the type of the wash station
      */
     public WashStation(int i) {
         this.type = i;
@@ -38,7 +42,7 @@ public class WashStation {
     }
 
     /**
-     * 
+     * Method that runs the logic for the Wash Station
      */
     public void run() {
         try {
@@ -81,7 +85,7 @@ public class WashStation {
                         System.out.println("Thread exception " + e);
                     }
                 }
-                gui.setBay1Status(1);
+                gui.setBayStatus(1, bayID);
                 System.out.println("Detected car");
                 gui.generateWashOutput("Wash" + bayID + ": Detected car");
                 System.out.println("Setting wash station busy status to false");
@@ -91,8 +95,8 @@ public class WashStation {
                 System.out.println("\n******************************************");
                 System.out.println("Washing car...");
                 gui.generateWashOutput("Wash" + bayID + ": Washing car...");
-                receiveCar(washer.getCar());
-                gui.setBay1Status(0);
+                serviceCar(washer.getCar());
+                gui.setBayStatus(0, bayID);
                 washer.setisReady(true);
                 
 
@@ -104,11 +108,12 @@ public class WashStation {
 
 
     /**
-     * 
-     * @param s
+     * Method to service the car, calculate time values, and update the car object
+     *
+     * @param s - String - Car object reference
      * @throws java.rmi.RemoteException
      */
-    public void receiveCar(String s) throws RemoteException {
+    public void serviceCar(String s) throws RemoteException {
         CarInterface c = null;
         try {
             

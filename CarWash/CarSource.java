@@ -6,18 +6,27 @@ import java.util.Random;
 
 //import javax.swing.*;
 
+/**
+ *
+ * @author Patrick Tillman, Brandon Parker, Ryan Spencer
+ */
 public class CarSource {
     
     private Registry registry;
     private Random generator;
     private GUIInterface gui;
 
+    /**
+     * Default constructor for CarSource
+     */
     public CarSource() {
-
 
         generator = new Random();
     }
 
+    /**
+     * Contains all the logic for generating cars
+     */
     public void start() {
         try {
 
@@ -99,8 +108,10 @@ public class CarSource {
         }
     }
 
-    
-
+    /**
+     * Invokes the CarSource Car generator
+     * @param args
+     */
     public static void main(String[] args) {
         CarSource cs = new CarSource();
         cs.start();
