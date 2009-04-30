@@ -13,6 +13,10 @@ import java.rmi.registry.Registry;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.*;
 
+/**
+ *
+ * @author Patrick Tillman, Brandon Parker, Ryan Spencer
+ */
 public class CarWashGUI extends JFrame{
 	
     Registry registry;
@@ -31,7 +35,12 @@ public class CarWashGUI extends JFrame{
 	protected int number_of_cars, timeInterval;
 	protected Random random;
     private GUIInterface gui;
-	
+
+    /**
+     * CarWashGUI default constructor
+     *
+     * @throws java.io.IOException
+     */
 	public CarWashGUI()throws IOException{
         try {
 
@@ -42,19 +51,20 @@ public class CarWashGUI extends JFrame{
             System.out.println("Registry located successfully");
 
             gui = (GUIInterface)registry.lookup("GUI");
-            gui.setReady(true);
-
+            
             System.out.println("GUI located and set to true");
 
         } catch (Exception e) {
             System.out.println("Exception in CarSource: " + e);
 
         }
-
-
 		initComponents();
+        gui.setReady(true);
 	}
-	
+
+    /**
+     * Saves Car generation time interval
+     */
 	private void saveInterval(){
 		boolean randomSelect = false;
 		if(responseTwo.getText().length() == 0)
@@ -122,8 +132,16 @@ public class CarWashGUI extends JFrame{
 				System.out.println("Time Interval: " + timeInterval);
 			}
 		}
+        try {
+            gui.setCarInterval(timeInterval);
+        } catch (Exception e) {
+            System.out.println("Exception: " + e);
+        }
 	}
-	
+
+    /**
+     * Saves the number of cars for the car generator
+     */
 	private void saveNumCars(){
 		boolean randomSelect = false;
 		if(response.getText().length() == 0)
@@ -191,8 +209,17 @@ public class CarWashGUI extends JFrame{
 				System.out.println("Number of Cars: " + number_of_cars);
 			}
 		}
+        try {
+            gui.setCarMax(number_of_cars);
+        } catch (Exception e) {
+            System.out.println("Exception: " + e);
+        }
 	}
-	
+
+    /**
+     * Method to display number of cars options for the generator
+     * Handles both discrete and automatic values
+     */
 	private void numCars(){
 		NumCarFrame = new JFrame("Total Cars");
 		ButtonHandler rh = new ButtonHandler();
@@ -271,7 +298,11 @@ public class CarWashGUI extends JFrame{
 		NumCarFrame.setVisible(true);
 		NumCarFrame.pack();
 	}
-	
+
+    /**
+     * Method to display car interval options for the generator
+     * Handles both discrete and automatic values
+     */
 	private void setInterval(){
 		IntervalFrame = new JFrame("Time Interval");
 		ButtonHandler rb = new ButtonHandler();
@@ -351,7 +382,9 @@ public class CarWashGUI extends JFrame{
 		IntervalFrame.pack();
 	}
 	
-	
+	/**
+     * Initialize and draw the screen
+     */
 	private void initComponents(){
 		contents = getContentPane();
 		contents.setLayout(new BorderLayout());
@@ -494,7 +527,10 @@ public class CarWashGUI extends JFrame{
 		pack();
 
 	}
-	
+
+    /**
+     * ButtonHandler for the GUI buttons
+     */
 	public class ButtonHandler implements ActionListener{
 		public void actionPerformed(ActionEvent ae){
 			
@@ -565,7 +601,11 @@ public class CarWashGUI extends JFrame{
 			}
 		}//End actionPerformed
 	}//End ButtonHandler
-	
+
+    /**
+     * Used to invoke the GUI
+     * @param args
+     */
 	public static void main(String[] args){
 		java.awt.EventQueue.invokeLater(new Runnable(){
 			public void run(){

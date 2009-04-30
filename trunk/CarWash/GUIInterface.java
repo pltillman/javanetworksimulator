@@ -18,21 +18,9 @@ public interface GUIInterface extends Remote {
 
     public int getCarInterval() throws RemoteException;
 
-    public void setBay1Status(int i) throws RemoteException;
+    public void setBayStatus(int i, int j) throws RemoteException;
 
-    public void setBay2Status(int i) throws RemoteException;
-
-    public void setBay3Status(int i) throws RemoteException;
-
-    public void setBay4Status(int i) throws RemoteException;
-
-    public int getBay1Status() throws RemoteException;
-
-    public int getBay2Status() throws RemoteException;
-
-    public int getBay3Status() throws RemoteException;
-
-    public int getBay4Status() throws RemoteException;
+    public int getBayStatus(int j) throws RemoteException;
 
 
 }

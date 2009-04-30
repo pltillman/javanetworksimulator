@@ -3,18 +3,33 @@ import java.rmi.server.*;
 import java.util.Vector;
 import java.rmi.registry.*;
 
+/**
+ *
+ * @author Patrick Tillman, Brandon Parker, Ryan Spencer
+ */
 public class CallbackServerImpl extends UnicastRemoteObject implements CallbackServerInterface {
 
     private Vector clientList;
     private Registry registry;
     private int[] washStationList;
-    
+
+    /**
+     * Default constructor for CallbackServerImpl
+     *
+     * @throws java.rmi.RemoteException
+     */
     public CallbackServerImpl() throws RemoteException {
         super();
         clientList = new Vector();
         registry = LocateRegistry.getRegistry("localhost",1099);
     }
 
+    /**
+     * Allows clients to register for a callback
+     *
+     * @param callbackClientObject - client object to add to the client list
+     * @throws java.rmi.RemoteException
+     */
     public void registerForCallback(CallbackClientInterface callbackClientObject)
             throws RemoteException {
         if (!(clientList.contains(callbackClientObject))) {
@@ -24,6 +39,12 @@ public class CallbackServerImpl extends UnicastRemoteObject implements CallbackS
         }
     }
 
+    /**
+     * Allows client to unregister for a callback
+     *
+     * @param callbackClientObject - client object to remove from the client list
+     * @throws java.rmi.RemoteException
+     */
     public synchronized void unregisterForCallback(CallbackClientInterface callbackClientObject)
             throws RemoteException {
         if (clientList.removeElement(callbackClientObject)) {
@@ -33,6 +54,13 @@ public class CallbackServerImpl extends UnicastRemoteObject implements CallbackS
         }
     }
 
+    /**
+     * Method that send a car reference to the specified bay
+     *
+     * @param id - int - Wash bay id - Determines which bay car will be sent
+     * @param s - String - Car object reference
+     * @throws java.rmi.RemoteException
+     */
     public synchronized void sendCarToWash(int id, String s) throws RemoteException {
         if (id > -1 && id < 4) {
             CallbackClientInterface nextClient = (CallbackClientInterface)clientList.elementAt(id);
@@ -41,22 +69,13 @@ public class CallbackServerImpl extends UnicastRemoteObject implements CallbackS
             System.out.println("Invalid station ID");
         }
     }
-    
-    public synchronized void doCallbacks(String c) throws RemoteException {
-        System.out.println("******************************");
-        
-        for (int i=0; i<clientList.size(); i++) {
-            System.out.println("doing " + i + " -th callback\n");
-            // convert the vector object to a callback object
-            CallbackClientInterface nextClient = (CallbackClientInterface)clientList.elementAt(i);
-            // invoke the callback method
-            nextClient.notifyMe("Number of registered clients= " + clientList.size());
-            //nextClient.notifyAttendent(c);
-        }
-        System.out.println("************************\n" +
-                "Server completed callbacks -- ");
-    }
-    
+
+    /**
+     * Method that allows the attendant to be notified that a new car has arrived
+     * 
+     * @param n - String - Car object reference
+     * @throws java.rmi.RemoteException
+     */
     public synchronized void tellServerAboutCar(String n) throws RemoteException {
         System.out.println("******************************");
 
